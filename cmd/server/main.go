@@ -6,14 +6,17 @@ import (
 	"net/http"
 	"os"
 	"os/signal"
+	"strings"
 	"syscall"
 	"time"
 
 	"github.com/bcnelson/tailscale-acl-manager/internal/api"
+	"github.com/bcnelson/tailscale-acl-manager/internal/auth"
 	"github.com/bcnelson/tailscale-acl-manager/internal/config"
 	"github.com/bcnelson/tailscale-acl-manager/internal/service"
 	"github.com/bcnelson/tailscale-acl-manager/internal/storage/sql"
 	"github.com/bcnelson/tailscale-acl-manager/internal/tailscale"
+	"github.com/bcnelson/tailscale-acl-manager/internal/web"
 )
 
 func main() {
@@ -64,8 +67,57 @@ func main() {
 		cfg.Sync.AutoSync,
 	)
 
+	// Initialize OIDC if enabled
+	var oidcComponents *web.OIDCComponents
+	if cfg.OIDC.Enabled {
+		log.Printf("Initializing OIDC with issuer: %s", cfg.OIDC.IssuerURL)
+
+		// Determine if we should use secure cookies (based on redirect URL)
+		secure := strings.HasPrefix(cfg.OIDC.RedirectURL, "https://")
+
+		// Get session secret
+		sessionKey, err := cfg.OIDC.GetSessionSecretBytes()
+		if err != nil {
+			log.Fatalf("Failed to get OIDC session secret: %v", err)
+		}
+
+		// Create OIDC provider
+		oidcProvider, err := auth.NewOIDCProvider(
+			context.Background(),
+			cfg.OIDC.IssuerURL,
+			cfg.OIDC.ClientID,
+			cfg.OIDC.ClientSecret,
+			cfg.OIDC.RedirectURL,
+			cfg.OIDC.GetScopes(),
+			cfg.OIDC.GetAllowedDomains(),
+		)
+		if err != nil {
+			log.Fatalf("Failed to initialize OIDC provider: %v", err)
+		}
+
+		// Create session manager
+		sessionManager, err := auth.NewSessionManager(sessionKey, cfg.OIDC.SessionDuration, secure)
+		if err != nil {
+			log.Fatalf("Failed to initialize session manager: %v", err)
+		}
+
+		// Create state store
+		stateStore, err := auth.NewStateStore(sessionKey, secure)
+		if err != nil {
+			log.Fatalf("Failed to initialize state store: %v", err)
+		}
+
+		oidcComponents = &web.OIDCComponents{
+			Provider:       oidcProvider,
+			SessionManager: sessionManager,
+			StateStore:     stateStore,
+		}
+
+		log.Printf("OIDC authentication enabled")
+	}
+
 	// Create router
-	router := api.NewRouter(store, syncService, cfg.Sync.BootstrapAPIKey)
+	router := api.NewRouter(store, syncService, cfg.Sync.BootstrapAPIKey, &cfg.OIDC, oidcComponents)
 
 	// Create HTTP server
 	server := &http.Server{

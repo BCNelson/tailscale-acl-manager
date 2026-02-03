@@ -22,12 +22,37 @@ const sessionContextKey contextKey = "session"
 
 // Session represents an authenticated user session.
 type Session struct {
-	APIKey *domain.APIKey
+	APIKey      *domain.APIKey
+	OIDCEmail   string // Set when authenticated via OIDC
+	OIDCName    string // Set when authenticated via OIDC
+	OIDCSubject string // Set when authenticated via OIDC
+	IsOIDC      bool   // True if authenticated via OIDC
 }
 
 // sessionAuth is middleware that validates session cookies.
+// It checks OIDC session first (if enabled), then falls back to API key.
 func (s *Server) sessionAuth(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		ctx := r.Context()
+
+		// Try OIDC session first (if enabled)
+		if s.oidcEnabled && s.sessionManager != nil {
+			oidcSession, err := s.sessionManager.Get(r)
+			if err == nil {
+				// Valid OIDC session
+				session := &Session{
+					OIDCEmail:   oidcSession.Email,
+					OIDCName:    oidcSession.Name,
+					OIDCSubject: oidcSession.Subject,
+					IsOIDC:      true,
+				}
+				ctx = context.WithValue(ctx, sessionContextKey, session)
+				next.ServeHTTP(w, r.WithContext(ctx))
+				return
+			}
+		}
+
+		// Fall back to API key session
 		cookie, err := r.Cookie(sessionCookieName)
 		if err != nil {
 			http.Redirect(w, r, "/login", http.StatusSeeOther)
@@ -40,8 +65,6 @@ func (s *Server) sessionAuth(next http.Handler) http.Handler {
 			http.Redirect(w, r, "/login", http.StatusSeeOther)
 			return
 		}
-
-		ctx := r.Context()
 
 		// Check if we have any API keys in the database
 		keyCount, err := s.store.CountAPIKeys(ctx)

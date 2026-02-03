@@ -12,10 +12,18 @@ import (
 	"github.com/go-chi/chi/v5"
 )
 
+// LoginPageData holds data for the login page.
+type LoginPageData struct {
+	OIDCEnabled bool
+}
+
 // handleLoginPage renders the login page.
 func (s *Server) handleLoginPage(w http.ResponseWriter, r *http.Request) {
 	data := PageData{
 		Title: "Login",
+		Content: LoginPageData{
+			OIDCEnabled: s.oidcEnabled,
+		},
 	}
 
 	// Check for flash message in query params
@@ -79,7 +87,20 @@ func (s *Server) handleLogin(w http.ResponseWriter, r *http.Request) {
 
 // handleLogout clears the session and redirects to login.
 func (s *Server) handleLogout(w http.ResponseWriter, r *http.Request) {
+	// Clear API key session cookie
 	clearSessionCookie(w)
+
+	// Clear OIDC session if enabled
+	if s.oidcEnabled && s.sessionManager != nil {
+		s.sessionManager.Clear(w)
+	}
+
+	// If OIDC has a logout URL configured, redirect there
+	if s.oidcEnabled && s.oidcConfig != nil && s.oidcConfig.LogoutURL != "" {
+		http.Redirect(w, r, s.oidcConfig.LogoutURL, http.StatusSeeOther)
+		return
+	}
+
 	http.Redirect(w, r, "/login", http.StatusSeeOther)
 }
 
