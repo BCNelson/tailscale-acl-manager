@@ -1,0 +1,126 @@
+{{define "content"}}
+{{- $data := .Content -}}
+
+<div class="d-flex align-center justify-between mb-3">
+  <h1 class="mb-0">Policy</h1>
+  <div class="d-flex gap-1">
+    <button class="btn btn-secondary" hx-get="/policy/preview" hx-target="#policy-preview" hx-swap="innerHTML">
+      <span class="htmx-indicator spinner"></span>
+      Refresh Preview
+    </button>
+    <form action="/policy/sync" method="POST" style="display: inline;">
+      <button type="submit" class="btn btn-primary" hx-post="/policy/sync" hx-swap="none">
+        <span class="htmx-indicator spinner"></span>
+        Sync to Tailscale
+      </button>
+    </form>
+  </div>
+</div>
+
+<div class="grid-2">
+  <div class="card">
+    <div class="card-header">
+      <h3>Merged Policy Preview</h3>
+    </div>
+    <div class="card-body" style="padding: 0;">
+      <div id="policy-preview" class="code-block" style="max-height: 600px; overflow: auto; margin: 0; border: none; border-radius: 0;">
+        <pre class="json-highlight">{{$data.PolicyJSON}}</pre>
+      </div>
+    </div>
+  </div>
+
+  <div>
+    <div class="card mb-2">
+      <div class="card-header">
+        <h3>Current Status</h3>
+      </div>
+      <div class="card-body">
+        {{if $data.LatestVersion}}
+        <div class="d-flex justify-between align-center mb-1">
+          <span>Version</span>
+          <strong>#{{$data.LatestVersion.VersionNumber}}</strong>
+        </div>
+        <div class="d-flex justify-between align-center mb-1">
+          <span>Status</span>
+          {{if eq $data.LatestVersion.PushStatus "success"}}
+          <span class="badge badge-success">Synced</span>
+          {{else if eq $data.LatestVersion.PushStatus "failed"}}
+          <span class="badge badge-danger">Failed</span>
+          {{else}}
+          <span class="badge badge-warning">Pending</span>
+          {{end}}
+        </div>
+        <div class="d-flex justify-between align-center mb-1">
+          <span>Last Sync</span>
+          <span class="text-muted">
+            {{if $data.LatestVersion.PushedAt}}
+            {{$data.LatestVersion.PushedAt.Format "Jan 2, 2006 15:04"}}
+            {{else}}
+            Not yet synced
+            {{end}}
+          </span>
+        </div>
+        {{if and $data.LatestVersion.PushError (ne $data.LatestVersion.PushError "")}}
+        <div class="flash flash-error mt-1">
+          {{$data.LatestVersion.PushError}}
+        </div>
+        {{end}}
+        {{else}}
+        <div class="text-muted text-center">
+          <p>No policy has been synced yet.</p>
+          <p>Click "Sync to Tailscale" to push the current policy.</p>
+        </div>
+        {{end}}
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-header">
+        <h3>Version History</h3>
+      </div>
+      <div class="card-body" style="padding: 0;">
+        {{if $data.Versions}}
+        <table>
+          <thead>
+            <tr>
+              <th>Version</th>
+              <th>Status</th>
+              <th>Time</th>
+              <th class="text-right">Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            {{range $data.Versions}}
+            <tr>
+              <td>#{{.VersionNumber}}</td>
+              <td>
+                {{if eq .PushStatus "success"}}
+                <span class="badge badge-success">Success</span>
+                {{else if eq .PushStatus "failed"}}
+                <span class="badge badge-danger">Failed</span>
+                {{else}}
+                <span class="badge badge-warning">Pending</span>
+                {{end}}
+              </td>
+              <td class="text-muted">{{.CreatedAt.Format "Jan 2, 15:04"}}</td>
+              <td class="table-actions">
+                {{if eq .PushStatus "success"}}
+                <button class="btn btn-sm btn-secondary" hx-post="/policy/rollback/{{.ID}}" hx-swap="none" hx-confirm="Are you sure you want to rollback to version #{{.VersionNumber}}?">
+                  Rollback
+                </button>
+                {{end}}
+              </td>
+            </tr>
+            {{end}}
+          </tbody>
+        </table>
+        {{else}}
+        <div class="empty-state">
+          <p>No version history yet.</p>
+        </div>
+        {{end}}
+      </div>
+    </div>
+  </div>
+</div>
+{{end}}

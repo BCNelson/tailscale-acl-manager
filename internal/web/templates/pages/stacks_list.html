@@ -1,0 +1,50 @@
+{{define "content"}}
+{{- $data := .Content -}}
+<div class="d-flex align-center justify-between mb-3">
+  <h1 class="mb-0">Stacks</h1>
+  <button class="btn btn-primary" hx-get="/stacks/new" hx-target="#modal-content" hx-swap="innerHTML" onclick="openModal('modal', 'New Stack')">
+    New Stack
+  </button>
+</div>
+
+<div class="card">
+  <div class="card-body" style="padding: 0;">
+    {{if $data.Stacks}}
+    <table>
+      <thead>
+        <tr>
+          <th>Name</th>
+          <th>Description</th>
+          <th>Priority</th>
+          <th>Created</th>
+          <th class="text-right">Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        {{range $data.Stacks}}
+        <tr>
+          <td><a href="/stacks/{{.ID}}"><strong>{{.Name}}</strong></a></td>
+          <td class="text-muted">{{if .Description}}{{.Description}}{{else}}-{{end}}</td>
+          <td>{{.Priority}}</td>
+          <td class="text-muted">{{.CreatedAt.Format "Jan 2, 2006"}}</td>
+          <td class="table-actions">
+            <a href="/stacks/{{.ID}}" class="btn btn-sm btn-secondary">View</a>
+            <button class="btn btn-sm btn-secondary" hx-get="/stacks/{{.ID}}/edit" hx-target="#modal-content" hx-swap="innerHTML" onclick="openModal('modal', 'Edit Stack')">Edit</button>
+            <button class="btn btn-sm btn-danger" onclick="confirmDelete('Are you sure you want to delete this stack? All resources in this stack will be deleted.', '/stacks/{{.ID}}')">Delete</button>
+          </td>
+        </tr>
+        {{end}}
+      </tbody>
+    </table>
+    {{else}}
+    <div class="empty-state">
+      <p>No stacks yet.</p>
+      <p class="text-muted">Create your first stack to start organizing your ACL resources.</p>
+      <button class="btn btn-primary mt-1" hx-get="/stacks/new" hx-target="#modal-content" hx-swap="innerHTML" onclick="openModal('modal', 'New Stack')">
+        Create Stack
+      </button>
+    </div>
+    {{end}}
+  </div>
+</div>
+{{end}}

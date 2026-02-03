@@ -1,0 +1,40 @@
+# devenv / direnv
+.devenv/
+.direnv/
+.pre-commit-config.yaml
+devenv.local.nix
+
+# Nix
+result
+result-*
+
+# Go
+*.exe
+*.dll
+*.so
+*.dylib
+*.test
+*.out
+vendor/
+go.work
+go.work.sum
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*~
+
+# OS
+.DS_Store
+
+# Environment
+.env
+.env.local
+
+# Build
+dist/
+build/
+bin/
+
+data/

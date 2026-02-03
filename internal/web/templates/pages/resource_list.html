@@ -1,0 +1,156 @@
+{{define "content"}}
+{{- $data := . -}}
+{{- $stackID := $data.StackID -}}
+{{- $meta := $data.Resource -}}
+{{- $items := $data.Items -}}
+
+<div class="card">
+  <div class="card-header">
+    <h3>{{$meta.Plural}}</h3>
+    <button class="btn btn-sm btn-primary" hx-get="/stacks/{{$stackID}}/{{$meta.Name}}/new" hx-target="#modal-content" hx-swap="innerHTML" onclick="openModal('modal', 'New {{$meta.Singular}}')">
+      New {{$meta.Singular}}
+    </button>
+  </div>
+  <div class="card-body" style="padding: 0;">
+    {{if $items}}
+    <table>
+      <thead>
+        <tr>
+          {{if eq $meta.Name "groups"}}
+          <th>Name</th>
+          <th>Members</th>
+          {{else if eq $meta.Name "tags"}}
+          <th>Tag</th>
+          <th>Owners</th>
+          {{else if eq $meta.Name "hosts"}}
+          <th>Name</th>
+          <th>Address</th>
+          {{else if eq $meta.Name "acls"}}
+          {{if $meta.HasOrder}}<th>Order</th>{{end}}
+          <th>Action</th>
+          <th>Protocol</th>
+          <th>Sources</th>
+          <th>Destinations</th>
+          {{else if eq $meta.Name "ssh"}}
+          {{if $meta.HasOrder}}<th>Order</th>{{end}}
+          <th>Action</th>
+          <th>Sources</th>
+          <th>Destinations</th>
+          <th>Users</th>
+          {{else if eq $meta.Name "grants"}}
+          {{if $meta.HasOrder}}<th>Order</th>{{end}}
+          <th>Sources</th>
+          <th>Destinations</th>
+          <th>IP</th>
+          {{else if eq $meta.Name "autoapprovers"}}
+          <th>Type</th>
+          <th>Match</th>
+          <th>Approvers</th>
+          {{else if eq $meta.Name "nodeattrs"}}
+          {{if $meta.HasOrder}}<th>Order</th>{{end}}
+          <th>Target</th>
+          <th>Attributes</th>
+          {{else if eq $meta.Name "postures"}}
+          <th>Name</th>
+          <th>Rules</th>
+          {{else if eq $meta.Name "ipsets"}}
+          <th>Name</th>
+          <th>Addresses</th>
+          {{else if eq $meta.Name "tests"}}
+          {{if $meta.HasOrder}}<th>Order</th>{{end}}
+          <th>Source</th>
+          <th>Accept</th>
+          <th>Deny</th>
+          {{end}}
+          <th class="text-right">Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        {{range $items}}
+        <tr>
+          {{if eq $meta.Name "groups"}}
+          <td><code class="font-mono">{{index . "name"}}</code></td>
+          <td class="text-muted">{{index . "members"}}</td>
+          {{else if eq $meta.Name "tags"}}
+          <td><code class="font-mono">{{index . "tag"}}</code></td>
+          <td class="text-muted">{{index . "owners"}}</td>
+          {{else if eq $meta.Name "hosts"}}
+          <td><code class="font-mono">{{index . "name"}}</code></td>
+          <td><code class="font-mono">{{index . "address"}}</code></td>
+          {{else if eq $meta.Name "acls"}}
+          {{if $meta.HasOrder}}<td>{{index . "order"}}</td>{{end}}
+          <td>
+            {{if eq (index . "action") "accept"}}
+            <span class="badge badge-success">Accept</span>
+            {{else}}
+            <span class="badge badge-danger">Deny</span>
+            {{end}}
+          </td>
+          <td>{{if index . "protocol"}}{{index . "protocol"}}{{else}}<span class="text-muted">any</span>{{end}}</td>
+          <td class="text-muted">{{index . "src"}}</td>
+          <td class="text-muted">{{index . "dst"}}</td>
+          {{else if eq $meta.Name "ssh"}}
+          {{if $meta.HasOrder}}<td>{{index . "order"}}</td>{{end}}
+          <td>
+            {{if eq (index . "action") "accept"}}
+            <span class="badge badge-success">Accept</span>
+            {{else}}
+            <span class="badge badge-info">Check</span>
+            {{end}}
+          </td>
+          <td class="text-muted">{{index . "src"}}</td>
+          <td class="text-muted">{{index . "dst"}}</td>
+          <td class="text-muted">{{index . "users"}}</td>
+          {{else if eq $meta.Name "grants"}}
+          {{if $meta.HasOrder}}<td>{{index . "order"}}</td>{{end}}
+          <td class="text-muted">{{index . "src"}}</td>
+          <td class="text-muted">{{index . "dst"}}</td>
+          <td class="text-muted">{{if index . "ip"}}{{index . "ip"}}{{else}}-{{end}}</td>
+          {{else if eq $meta.Name "autoapprovers"}}
+          <td><span class="badge badge-info">{{index . "type"}}</span></td>
+          <td><code class="font-mono">{{index . "match"}}</code></td>
+          <td class="text-muted">{{index . "approvers"}}</td>
+          {{else if eq $meta.Name "nodeattrs"}}
+          {{if $meta.HasOrder}}<td>{{index . "order"}}</td>{{end}}
+          <td class="text-muted">{{index . "target"}}</td>
+          <td class="text-muted">{{if index . "attr"}}{{index . "attr"}}{{else}}-{{end}}</td>
+          {{else if eq $meta.Name "postures"}}
+          <td><code class="font-mono">{{index . "name"}}</code></td>
+          <td class="text-muted">{{index . "rules"}}</td>
+          {{else if eq $meta.Name "ipsets"}}
+          <td><code class="font-mono">{{index . "name"}}</code></td>
+          <td class="text-muted">{{index . "addresses"}}</td>
+          {{else if eq $meta.Name "tests"}}
+          {{if $meta.HasOrder}}<td>{{index . "order"}}</td>{{end}}
+          <td><code class="font-mono">{{index . "src"}}</code></td>
+          <td class="text-muted">{{if index . "accept"}}{{index . "accept"}}{{else}}-{{end}}</td>
+          <td class="text-muted">{{if index . "deny"}}{{index . "deny"}}{{else}}-{{end}}</td>
+          {{end}}
+          <td class="table-actions">
+            {{$idField := $meta.IDField}}
+            {{$id := ""}}
+            {{if eq $idField "name"}}
+              {{$id = index . "name"}}
+            {{else if eq $idField "tag"}}
+              {{$id = index . "tag"}}
+            {{else}}
+              {{$id = index . "id"}}
+            {{end}}
+            <button class="btn btn-sm btn-secondary" hx-get="/stacks/{{$stackID}}/{{$meta.Name}}/{{$id}}/edit" hx-target="#modal-content" hx-swap="innerHTML" onclick="openModal('modal', 'Edit {{$meta.Singular}}')">Edit</button>
+            <button class="btn btn-sm btn-danger" onclick="confirmDelete('Are you sure you want to delete this {{$meta.Singular}}?', '/stacks/{{$stackID}}/{{$meta.Name}}/{{$id}}')">Delete</button>
+          </td>
+        </tr>
+        {{end}}
+      </tbody>
+    </table>
+    {{else}}
+    <div class="empty-state">
+      <p>No {{$meta.Plural | lower}} in this stack yet.</p>
+      <button class="btn btn-primary mt-1" hx-get="/stacks/{{$stackID}}/{{$meta.Name}}/new" hx-target="#modal-content" hx-swap="innerHTML" onclick="openModal('modal', 'New {{$meta.Singular}}')">
+        Add {{$meta.Singular}}
+      </button>
+    </div>
+    {{end}}
+  </div>
+</div>
+{{end}}

@@ -1,0 +1,27 @@
+{{define "modal"}}
+<div id="modal" class="modal-backdrop">
+  <div class="modal">
+    <div class="modal-header">
+      <h3 id="modal-title">Modal</h3>
+      <button type="button" class="modal-close" onclick="closeModal('modal')">&times;</button>
+    </div>
+    <div class="modal-body" id="modal-content">
+      <!-- Content loaded via htmx -->
+    </div>
+  </div>
+</div>
+{{end}}
+
+{{define "modal-form"}}
+<div class="modal-backdrop open" id="form-modal">
+  <div class="modal">
+    <div class="modal-header">
+      <h3>{{.Title}}</h3>
+      <button type="button" class="modal-close" onclick="closeModal('form-modal')">&times;</button>
+    </div>
+    <div class="modal-body">
+      {{template "content" .}}
+    </div>
+  </div>
+</div>
+{{end}}

@@ -1,0 +1,50 @@
+{{define "base"}}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{{.Title}} - Tailscale ACL Manager</title>
+  <link rel="stylesheet" href="/static/css/style.css">
+  <script src="https://unpkg.com/htmx.org@1.9.10"></script>
+</head>
+<body>
+  <div class="page">
+    {{template "nav" .}}
+    <main>
+      <div class="container">
+        {{if .Flash}}
+        {{template "flash" .Flash}}
+        {{end}}
+        {{template "content" .}}
+      </div>
+    </main>
+  </div>
+
+  {{template "modal" .}}
+  <script src="/static/js/app.js"></script>
+</body>
+</html>
+{{end}}
+
+{{define "base-noauth"}}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{{.Title}} - Tailscale ACL Manager</title>
+  <link rel="stylesheet" href="/static/css/style.css">
+  <script src="https://unpkg.com/htmx.org@1.9.10"></script>
+</head>
+<body>
+  {{if .Flash}}
+  <div class="container" style="margin-top: 1rem;">
+    {{template "flash" .Flash}}
+  </div>
+  {{end}}
+  {{template "content" .}}
+  <script src="/static/js/app.js"></script>
+</body>
+</html>
+{{end}}

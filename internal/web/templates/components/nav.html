@@ -1,0 +1,14 @@
+{{define "nav"}}
+<nav>
+  <div class="container">
+    <a href="/" class="nav-brand">Tailscale ACL Manager</a>
+    <ul class="nav-links">
+      <li><a href="/" {{if eq .Active "dashboard"}}class="active"{{end}}>Dashboard</a></li>
+      <li><a href="/stacks" {{if eq .Active "stacks"}}class="active"{{end}}>Stacks</a></li>
+      <li><a href="/policy" {{if eq .Active "policy"}}class="active"{{end}}>Policy</a></li>
+      <li><a href="/settings" {{if eq .Active "settings"}}class="active"{{end}}>Settings</a></li>
+      <li><a href="/logout">Logout</a></li>
+    </ul>
+  </div>
+</nav>
+{{end}}

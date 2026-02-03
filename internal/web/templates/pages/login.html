@@ -1,0 +1,20 @@
+{{define "content"}}
+<div class="login-container">
+  <div class="card login-card">
+    <div class="card-header">
+      <h1>Tailscale ACL Manager</h1>
+      <p>Enter your API key to continue</p>
+    </div>
+    <div class="card-body">
+      <form method="POST" action="/login">
+        <div class="form-group">
+          <label for="api_key">API Key</label>
+          <input type="password" id="api_key" name="api_key" required placeholder="acl_..." autofocus>
+          <div class="help-text">Enter your API key or bootstrap key</div>
+        </div>
+        <button type="submit" class="btn btn-primary" style="width: 100%;">Login</button>
+      </form>
+    </div>
+  </div>
+</div>
+{{end}}

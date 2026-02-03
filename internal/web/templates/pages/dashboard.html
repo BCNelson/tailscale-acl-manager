@@ -1,0 +1,128 @@
+{{define "content"}}
+{{- $data := .Content -}}
+<h1 class="mb-3">Dashboard</h1>
+
+<div class="stats-grid">
+  <div class="stat-card">
+    <div class="stat-value">{{$data.StackCount}}</div>
+    <div class="stat-label">Stacks</div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-value">
+      {{if $data.LatestVersion}}
+        {{$data.LatestVersion.VersionNumber}}
+      {{else}}
+        0
+      {{end}}
+    </div>
+    <div class="stat-label">Policy Version</div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-value">
+      {{if eq $data.SyncStatus "Synced"}}
+        <span class="text-success">{{$data.SyncStatus}}</span>
+      {{else if eq $data.SyncStatus "Failed"}}
+        <span class="text-danger">{{$data.SyncStatus}}</span>
+      {{else}}
+        {{$data.SyncStatus}}
+      {{end}}
+    </div>
+    <div class="stat-label">Sync Status</div>
+  </div>
+</div>
+
+<div class="grid-2">
+  <div class="card">
+    <div class="card-header">
+      <h3>Stacks</h3>
+      <a href="/stacks/new" class="btn btn-sm btn-primary" hx-get="/stacks/new" hx-target="#modal-content" hx-swap="innerHTML" onclick="openModal('modal', 'New Stack')">New Stack</a>
+    </div>
+    <div class="card-body">
+      {{if $data.Stacks}}
+      <table>
+        <thead>
+          <tr>
+            <th>Name</th>
+            <th>Priority</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody>
+          {{range $data.Stacks}}
+          <tr>
+            <td><a href="/stacks/{{.ID}}">{{.Name}}</a></td>
+            <td>{{.Priority}}</td>
+            <td class="text-right">
+              <a href="/stacks/{{.ID}}" class="btn btn-sm btn-secondary">View</a>
+            </td>
+          </tr>
+          {{end}}
+        </tbody>
+      </table>
+      {{else}}
+      <div class="empty-state">
+        <p>No stacks yet.</p>
+        <p class="text-muted">Create your first stack to start managing ACLs.</p>
+      </div>
+      {{end}}
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-header">
+      <h3>Recent Sync History</h3>
+      <a href="/policy" class="btn btn-sm btn-secondary">View All</a>
+    </div>
+    <div class="card-body">
+      {{if $data.LatestVersion}}
+      <table>
+        <thead>
+          <tr>
+            <th>Version</th>
+            <th>Status</th>
+            <th>Time</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>#{{$data.LatestVersion.VersionNumber}}</td>
+            <td>
+              {{if eq $data.LatestVersion.PushStatus "success"}}
+              <span class="badge badge-success">Success</span>
+              {{else if eq $data.LatestVersion.PushStatus "failed"}}
+              <span class="badge badge-danger">Failed</span>
+              {{else}}
+              <span class="badge badge-warning">Pending</span>
+              {{end}}
+            </td>
+            <td class="text-muted">{{$data.LatestVersion.CreatedAt.Format "Jan 2, 15:04"}}</td>
+          </tr>
+        </tbody>
+      </table>
+      {{else}}
+      <div class="empty-state">
+        <p>No sync history yet.</p>
+        <p class="text-muted">Syncs will appear here after you push to Tailscale.</p>
+      </div>
+      {{end}}
+    </div>
+  </div>
+</div>
+
+<div class="card mt-2">
+  <div class="card-header">
+    <h3>Quick Actions</h3>
+  </div>
+  <div class="card-body">
+    <div class="d-flex gap-2">
+      <a href="/policy" class="btn btn-secondary">View Policy</a>
+      <form action="/policy/sync" method="POST" style="display: inline;">
+        <button type="submit" class="btn btn-primary" hx-post="/policy/sync" hx-swap="none">
+          <span class="htmx-indicator spinner"></span>
+          Sync to Tailscale
+        </button>
+      </form>
+    </div>
+  </div>
+</div>
+{{end}}

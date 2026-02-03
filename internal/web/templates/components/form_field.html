@@ -1,0 +1,24 @@
+{{define "form_field"}}
+{{- $field := . -}}
+<div class="form-group">
+  <label for="{{$field.Name}}">{{$field.Label}}{{if $field.Required}} *{{end}}</label>
+  {{if eq $field.Type "text"}}
+  <input type="text" id="{{$field.Name}}" name="{{$field.Name}}" value="{{$field.Value}}" {{if $field.Required}}required{{end}} {{if $field.Placeholder}}placeholder="{{$field.Placeholder}}"{{end}}>
+  {{else if eq $field.Type "number"}}
+  <input type="number" id="{{$field.Name}}" name="{{$field.Name}}" value="{{$field.Value}}" {{if $field.Required}}required{{end}} {{if $field.Placeholder}}placeholder="{{$field.Placeholder}}"{{end}}>
+  {{else if eq $field.Type "password"}}
+  <input type="password" id="{{$field.Name}}" name="{{$field.Name}}" {{if $field.Required}}required{{end}} {{if $field.Placeholder}}placeholder="{{$field.Placeholder}}"{{end}}>
+  {{else if eq $field.Type "textarea"}}
+  <textarea id="{{$field.Name}}" name="{{$field.Name}}" {{if $field.Required}}required{{end}} {{if $field.Placeholder}}placeholder="{{$field.Placeholder}}"{{end}} rows="{{if $field.Rows}}{{$field.Rows}}{{else}}4{{end}}">{{$field.Value}}</textarea>
+  {{else if eq $field.Type "select"}}
+  <select id="{{$field.Name}}" name="{{$field.Name}}" {{if $field.Required}}required{{end}}>
+    {{range $field.Options}}
+    <option value="{{.Value}}" {{if eq .Value $field.Value}}selected{{end}}>{{.Label}}</option>
+    {{end}}
+  </select>
+  {{end}}
+  {{if $field.Help}}
+  <div class="help-text">{{$field.Help}}</div>
+  {{end}}
+</div>
+{{end}}

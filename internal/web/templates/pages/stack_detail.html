@@ -1,0 +1,46 @@
+{{define "content"}}
+{{- $data := .Content -}}
+{{- $stack := $data.Stack -}}
+{{- $activeTab := $data.ActiveTab -}}
+{{- $counts := $data.ResourceCount -}}
+
+<div class="stack-header">
+  <div>
+    <h1>{{$stack.Name}}</h1>
+    {{if $stack.Description}}
+    <p class="description">{{$stack.Description}}</p>
+    {{end}}
+    <p class="text-muted" style="margin-top: 0.25rem; font-size: 0.875rem;">
+      Priority: {{$stack.Priority}} | Created: {{$stack.CreatedAt.Format "Jan 2, 2006"}}
+    </p>
+  </div>
+  <div class="actions">
+    <button class="btn btn-secondary" hx-get="/stacks/{{$stack.ID}}/edit" hx-target="#modal-content" hx-swap="innerHTML" onclick="openModal('modal', 'Edit Stack')">
+      Edit Stack
+    </button>
+    <button class="btn btn-danger" onclick="confirmDelete('Are you sure you want to delete this stack? All resources will be deleted.', '/stacks/{{$stack.ID}}')">
+      Delete Stack
+    </button>
+  </div>
+</div>
+
+<div class="tabs">
+  <a href="/stacks/{{$stack.ID}}?tab=groups" class="tab {{if eq $activeTab "groups"}}active{{end}}">Groups ({{index $counts "groups"}})</a>
+  <a href="/stacks/{{$stack.ID}}?tab=tags" class="tab {{if eq $activeTab "tags"}}active{{end}}">Tags ({{index $counts "tags"}})</a>
+  <a href="/stacks/{{$stack.ID}}?tab=hosts" class="tab {{if eq $activeTab "hosts"}}active{{end}}">Hosts ({{index $counts "hosts"}})</a>
+  <a href="/stacks/{{$stack.ID}}?tab=acls" class="tab {{if eq $activeTab "acls"}}active{{end}}">ACLs ({{index $counts "acls"}})</a>
+  <a href="/stacks/{{$stack.ID}}?tab=ssh" class="tab {{if eq $activeTab "ssh"}}active{{end}}">SSH ({{index $counts "ssh"}})</a>
+  <a href="/stacks/{{$stack.ID}}?tab=grants" class="tab {{if eq $activeTab "grants"}}active{{end}}">Grants ({{index $counts "grants"}})</a>
+  <a href="/stacks/{{$stack.ID}}?tab=autoapprovers" class="tab {{if eq $activeTab "autoapprovers"}}active{{end}}">Auto Approvers ({{index $counts "autoapprovers"}})</a>
+  <a href="/stacks/{{$stack.ID}}?tab=nodeattrs" class="tab {{if eq $activeTab "nodeattrs"}}active{{end}}">Node Attrs ({{index $counts "nodeattrs"}})</a>
+  <a href="/stacks/{{$stack.ID}}?tab=postures" class="tab {{if eq $activeTab "postures"}}active{{end}}">Postures ({{index $counts "postures"}})</a>
+  <a href="/stacks/{{$stack.ID}}?tab=ipsets" class="tab {{if eq $activeTab "ipsets"}}active{{end}}">IP Sets ({{index $counts "ipsets"}})</a>
+  <a href="/stacks/{{$stack.ID}}?tab=tests" class="tab {{if eq $activeTab "tests"}}active{{end}}">Tests ({{index $counts "tests"}})</a>
+</div>
+
+<div id="resource-content" hx-get="/stacks/{{$stack.ID}}/{{$activeTab}}" hx-trigger="load" hx-swap="innerHTML">
+  <div class="text-center" style="padding: 2rem;">
+    <span class="spinner"></span> Loading...
+  </div>
+</div>
+{{end}}
