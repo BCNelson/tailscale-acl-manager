@@ -36,5 +36,11 @@ go.work.sum
 dist/
 build/
 bin/
+/server
+/tailscale-acl-manager
+/tailscale-acl-manager-*
 
 data/
+
+# Coverage reports
+coverage/

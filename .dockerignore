@@ -1,0 +1,60 @@
+# Git
+.git/
+.gitignore
+
+# Development
+.devenv/
+.direnv/
+.pre-commit-config.yaml
+devenv.local.nix
+devenv.nix
+devenv.lock
+devenv.yaml
+flake.nix
+flake.lock
+.envrc
+justfile
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*~
+
+# Build artifacts
+dist/
+build/
+bin/
+result
+result-*
+*.exe
+*.dll
+*.so
+*.dylib
+*.test
+*.out
+vendor/
+go.work
+go.work.sum
+
+# Data and runtime
+data/
+
+# Environment files
+.env
+.env.local
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Test and coverage
+coverage/
+*.coverprofile
+
+# Documentation (not needed in container)
+*.md
+LICENSE
+
+# GitHub
+.github/
