@@ -43,6 +43,10 @@ func NewRouter(
 		r.Use(middleware.ContentType)
 		r.Use(middleware.Auth(store, bootstrapKey))
 
+		// Import endpoint for Pulumi provider support
+		importHandler := handler.NewImportHandler(store)
+		r.Get("/import", importHandler.Lookup)
+
 		// API Keys
 		keyHandler := handler.NewAPIKeyHandler(store)
 		r.Post("/keys", keyHandler.Create)
@@ -67,25 +71,34 @@ func NewRouter(
 			groupHandler := handler.NewGroupHandler(store, syncService)
 			r.Post("/groups", groupHandler.Create)
 			r.Get("/groups", groupHandler.List)
-			r.Get("/groups/{name}", groupHandler.Get)
-			r.Put("/groups/{name}", groupHandler.Update)
-			r.Delete("/groups/{name}", groupHandler.Delete)
+			r.Get("/groups/{id}", groupHandler.GetByID)
+			r.Put("/groups/{id}", groupHandler.UpdateByID)
+			r.Delete("/groups/{id}", groupHandler.DeleteByID)
+			r.Get("/groups/name/{name}", groupHandler.Get)
+			r.Put("/groups/name/{name}", groupHandler.Update)
+			r.Delete("/groups/name/{name}", groupHandler.Delete)
 
 			// Tag Owners
 			tagHandler := handler.NewTagOwnerHandler(store, syncService)
 			r.Post("/tags", tagHandler.Create)
 			r.Get("/tags", tagHandler.List)
-			r.Get("/tags/{tag}", tagHandler.Get)
-			r.Put("/tags/{tag}", tagHandler.Update)
-			r.Delete("/tags/{tag}", tagHandler.Delete)
+			r.Get("/tags/{id}", tagHandler.GetByID)
+			r.Put("/tags/{id}", tagHandler.UpdateByID)
+			r.Delete("/tags/{id}", tagHandler.DeleteByID)
+			r.Get("/tags/name/{tag}", tagHandler.Get)
+			r.Put("/tags/name/{tag}", tagHandler.Update)
+			r.Delete("/tags/name/{tag}", tagHandler.Delete)
 
 			// Hosts
 			hostHandler := handler.NewHostHandler(store, syncService)
 			r.Post("/hosts", hostHandler.Create)
 			r.Get("/hosts", hostHandler.List)
-			r.Get("/hosts/{name}", hostHandler.Get)
-			r.Put("/hosts/{name}", hostHandler.Update)
-			r.Delete("/hosts/{name}", hostHandler.Delete)
+			r.Get("/hosts/{id}", hostHandler.GetByID)
+			r.Put("/hosts/{id}", hostHandler.UpdateByID)
+			r.Delete("/hosts/{id}", hostHandler.DeleteByID)
+			r.Get("/hosts/name/{name}", hostHandler.Get)
+			r.Put("/hosts/name/{name}", hostHandler.Update)
+			r.Delete("/hosts/name/{name}", hostHandler.Delete)
 
 			// ACL Rules
 			aclHandler := handler.NewACLHandler(store, syncService)
@@ -131,17 +144,23 @@ func NewRouter(
 			postureHandler := handler.NewPostureHandler(store, syncService)
 			r.Post("/postures", postureHandler.Create)
 			r.Get("/postures", postureHandler.List)
-			r.Get("/postures/{name}", postureHandler.Get)
-			r.Put("/postures/{name}", postureHandler.Update)
-			r.Delete("/postures/{name}", postureHandler.Delete)
+			r.Get("/postures/{id}", postureHandler.GetByID)
+			r.Put("/postures/{id}", postureHandler.UpdateByID)
+			r.Delete("/postures/{id}", postureHandler.DeleteByID)
+			r.Get("/postures/name/{name}", postureHandler.Get)
+			r.Put("/postures/name/{name}", postureHandler.Update)
+			r.Delete("/postures/name/{name}", postureHandler.Delete)
 
 			// IP Sets
 			ipsetHandler := handler.NewIPSetHandler(store, syncService)
 			r.Post("/ipsets", ipsetHandler.Create)
 			r.Get("/ipsets", ipsetHandler.List)
-			r.Get("/ipsets/{name}", ipsetHandler.Get)
-			r.Put("/ipsets/{name}", ipsetHandler.Update)
-			r.Delete("/ipsets/{name}", ipsetHandler.Delete)
+			r.Get("/ipsets/{id}", ipsetHandler.GetByID)
+			r.Put("/ipsets/{id}", ipsetHandler.UpdateByID)
+			r.Delete("/ipsets/{id}", ipsetHandler.DeleteByID)
+			r.Get("/ipsets/name/{name}", ipsetHandler.Get)
+			r.Put("/ipsets/name/{name}", ipsetHandler.Update)
+			r.Delete("/ipsets/name/{name}", ipsetHandler.Delete)
 
 			// ACL Tests
 			testHandler := handler.NewACLTestHandler(store, syncService)

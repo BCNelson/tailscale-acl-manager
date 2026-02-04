@@ -123,6 +123,12 @@ func (t *Tx) UpdateGroup(ctx context.Context, group *domain.Group) error {
 func (t *Tx) DeleteGroup(ctx context.Context, stackID, name string) error {
 	return t.store.DeleteGroup(ctx, stackID, name)
 }
+func (t *Tx) GetGroupByID(ctx context.Context, id string) (*domain.Group, error) {
+	return t.store.GetGroupByID(ctx, id)
+}
+func (t *Tx) DeleteGroupByID(ctx context.Context, id string) error {
+	return t.store.DeleteGroupByID(ctx, id)
+}
 func (t *Tx) DeleteAllGroupsForStack(ctx context.Context, stackID string) error {
 	return t.store.DeleteAllGroupsForStack(ctx, stackID)
 }
@@ -144,6 +150,12 @@ func (t *Tx) UpdateTagOwner(ctx context.Context, tagOwner *domain.TagOwner) erro
 func (t *Tx) DeleteTagOwner(ctx context.Context, stackID, tag string) error {
 	return t.store.DeleteTagOwner(ctx, stackID, tag)
 }
+func (t *Tx) GetTagOwnerByID(ctx context.Context, id string) (*domain.TagOwner, error) {
+	return t.store.GetTagOwnerByID(ctx, id)
+}
+func (t *Tx) DeleteTagOwnerByID(ctx context.Context, id string) error {
+	return t.store.DeleteTagOwnerByID(ctx, id)
+}
 func (t *Tx) DeleteAllTagOwnersForStack(ctx context.Context, stackID string) error {
 	return t.store.DeleteAllTagOwnersForStack(ctx, stackID)
 }
@@ -164,6 +176,12 @@ func (t *Tx) UpdateHost(ctx context.Context, host *domain.Host) error {
 }
 func (t *Tx) DeleteHost(ctx context.Context, stackID, name string) error {
 	return t.store.DeleteHost(ctx, stackID, name)
+}
+func (t *Tx) GetHostByID(ctx context.Context, id string) (*domain.Host, error) {
+	return t.store.GetHostByID(ctx, id)
+}
+func (t *Tx) DeleteHostByID(ctx context.Context, id string) error {
+	return t.store.DeleteHostByID(ctx, id)
 }
 func (t *Tx) DeleteAllHostsForStack(ctx context.Context, stackID string) error {
 	return t.store.DeleteAllHostsForStack(ctx, stackID)
@@ -291,6 +309,12 @@ func (t *Tx) UpdatePosture(ctx context.Context, posture *domain.Posture) error {
 func (t *Tx) DeletePosture(ctx context.Context, stackID, name string) error {
 	return t.store.DeletePosture(ctx, stackID, name)
 }
+func (t *Tx) GetPostureByID(ctx context.Context, id string) (*domain.Posture, error) {
+	return t.store.GetPostureByID(ctx, id)
+}
+func (t *Tx) DeletePostureByID(ctx context.Context, id string) error {
+	return t.store.DeletePostureByID(ctx, id)
+}
 func (t *Tx) DeleteAllPosturesForStack(ctx context.Context, stackID string) error {
 	return t.store.DeleteAllPosturesForStack(ctx, stackID)
 }
@@ -311,6 +335,12 @@ func (t *Tx) UpdateIPSet(ctx context.Context, ipset *domain.IPSet) error {
 }
 func (t *Tx) DeleteIPSet(ctx context.Context, stackID, name string) error {
 	return t.store.DeleteIPSet(ctx, stackID, name)
+}
+func (t *Tx) GetIPSetByID(ctx context.Context, id string) (*domain.IPSet, error) {
+	return t.store.GetIPSetByID(ctx, id)
+}
+func (t *Tx) DeleteIPSetByID(ctx context.Context, id string) error {
+	return t.store.DeleteIPSetByID(ctx, id)
 }
 func (t *Tx) DeleteAllIPSetsForStack(ctx context.Context, stackID string) error {
 	return t.store.DeleteAllIPSetsForStack(ctx, stackID)
@@ -571,6 +601,29 @@ func (s *Store) DeleteGroup(ctx context.Context, stackID, name string) error {
 	return nil
 }
 
+func (s *Store) GetGroupByID(ctx context.Context, id string) (*domain.Group, error) {
+	s.mu.RLock()
+	defer s.mu.RUnlock()
+	for _, group := range s.groups {
+		if group.ID == id {
+			return group, nil
+		}
+	}
+	return nil, domain.ErrNotFound
+}
+
+func (s *Store) DeleteGroupByID(ctx context.Context, id string) error {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	for key, group := range s.groups {
+		if group.ID == id {
+			delete(s.groups, key)
+			return nil
+		}
+	}
+	return domain.ErrNotFound
+}
+
 func (s *Store) DeleteAllGroupsForStack(ctx context.Context, stackID string) error {
 	s.mu.Lock()
 	defer s.mu.Unlock()
@@ -661,6 +714,29 @@ func (s *Store) DeleteTagOwner(ctx context.Context, stackID, tag string) error {
 	return nil
 }
 
+func (s *Store) GetTagOwnerByID(ctx context.Context, id string) (*domain.TagOwner, error) {
+	s.mu.RLock()
+	defer s.mu.RUnlock()
+	for _, to := range s.tagOwners {
+		if to.ID == id {
+			return to, nil
+		}
+	}
+	return nil, domain.ErrNotFound
+}
+
+func (s *Store) DeleteTagOwnerByID(ctx context.Context, id string) error {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	for key, to := range s.tagOwners {
+		if to.ID == id {
+			delete(s.tagOwners, key)
+			return nil
+		}
+	}
+	return domain.ErrNotFound
+}
+
 func (s *Store) DeleteAllTagOwnersForStack(ctx context.Context, stackID string) error {
 	s.mu.Lock()
 	defer s.mu.Unlock()
@@ -749,6 +825,29 @@ func (s *Store) DeleteHost(ctx context.Context, stackID, name string) error {
 	}
 	delete(s.hosts, key)
 	return nil
+}
+
+func (s *Store) GetHostByID(ctx context.Context, id string) (*domain.Host, error) {
+	s.mu.RLock()
+	defer s.mu.RUnlock()
+	for _, host := range s.hosts {
+		if host.ID == id {
+			return host, nil
+		}
+	}
+	return nil, domain.ErrNotFound
+}
+
+func (s *Store) DeleteHostByID(ctx context.Context, id string) error {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	for key, host := range s.hosts {
+		if host.ID == id {
+			delete(s.hosts, key)
+			return nil
+		}
+	}
+	return domain.ErrNotFound
 }
 
 func (s *Store) DeleteAllHostsForStack(ctx context.Context, stackID string) error {
@@ -1265,6 +1364,29 @@ func (s *Store) DeletePosture(ctx context.Context, stackID, name string) error {
 	return nil
 }
 
+func (s *Store) GetPostureByID(ctx context.Context, id string) (*domain.Posture, error) {
+	s.mu.RLock()
+	defer s.mu.RUnlock()
+	for _, posture := range s.postures {
+		if posture.ID == id {
+			return posture, nil
+		}
+	}
+	return nil, domain.ErrNotFound
+}
+
+func (s *Store) DeletePostureByID(ctx context.Context, id string) error {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	for key, posture := range s.postures {
+		if posture.ID == id {
+			delete(s.postures, key)
+			return nil
+		}
+	}
+	return domain.ErrNotFound
+}
+
 func (s *Store) DeleteAllPosturesForStack(ctx context.Context, stackID string) error {
 	s.mu.Lock()
 	defer s.mu.Unlock()
@@ -1353,6 +1475,29 @@ func (s *Store) DeleteIPSet(ctx context.Context, stackID, name string) error {
 	}
 	delete(s.ipsets, key)
 	return nil
+}
+
+func (s *Store) GetIPSetByID(ctx context.Context, id string) (*domain.IPSet, error) {
+	s.mu.RLock()
+	defer s.mu.RUnlock()
+	for _, ipset := range s.ipsets {
+		if ipset.ID == id {
+			return ipset, nil
+		}
+	}
+	return nil, domain.ErrNotFound
+}
+
+func (s *Store) DeleteIPSetByID(ctx context.Context, id string) error {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	for key, ipset := range s.ipsets {
+		if ipset.ID == id {
+			delete(s.ipsets, key)
+			return nil
+		}
+	}
+	return domain.ErrNotFound
 }
 
 func (s *Store) DeleteAllIPSetsForStack(ctx context.Context, stackID string) error {

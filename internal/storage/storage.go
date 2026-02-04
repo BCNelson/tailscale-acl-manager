@@ -31,28 +31,34 @@ type Storage interface {
 	// Groups
 	CreateGroup(ctx context.Context, group *domain.Group) error
 	GetGroup(ctx context.Context, stackID, name string) (*domain.Group, error)
+	GetGroupByID(ctx context.Context, id string) (*domain.Group, error)
 	ListGroups(ctx context.Context, stackID string) ([]*domain.Group, error)
 	ListAllGroups(ctx context.Context) ([]*domain.Group, error)
 	UpdateGroup(ctx context.Context, group *domain.Group) error
 	DeleteGroup(ctx context.Context, stackID, name string) error
+	DeleteGroupByID(ctx context.Context, id string) error
 	DeleteAllGroupsForStack(ctx context.Context, stackID string) error
 
 	// Tag Owners
 	CreateTagOwner(ctx context.Context, tagOwner *domain.TagOwner) error
 	GetTagOwner(ctx context.Context, stackID, tag string) (*domain.TagOwner, error)
+	GetTagOwnerByID(ctx context.Context, id string) (*domain.TagOwner, error)
 	ListTagOwners(ctx context.Context, stackID string) ([]*domain.TagOwner, error)
 	ListAllTagOwners(ctx context.Context) ([]*domain.TagOwner, error)
 	UpdateTagOwner(ctx context.Context, tagOwner *domain.TagOwner) error
 	DeleteTagOwner(ctx context.Context, stackID, tag string) error
+	DeleteTagOwnerByID(ctx context.Context, id string) error
 	DeleteAllTagOwnersForStack(ctx context.Context, stackID string) error
 
 	// Hosts
 	CreateHost(ctx context.Context, host *domain.Host) error
 	GetHost(ctx context.Context, stackID, name string) (*domain.Host, error)
+	GetHostByID(ctx context.Context, id string) (*domain.Host, error)
 	ListHosts(ctx context.Context, stackID string) ([]*domain.Host, error)
 	ListAllHosts(ctx context.Context) ([]*domain.Host, error)
 	UpdateHost(ctx context.Context, host *domain.Host) error
 	DeleteHost(ctx context.Context, stackID, name string) error
+	DeleteHostByID(ctx context.Context, id string) error
 	DeleteAllHostsForStack(ctx context.Context, stackID string) error
 
 	// ACL Rules
@@ -103,19 +109,23 @@ type Storage interface {
 	// Postures
 	CreatePosture(ctx context.Context, posture *domain.Posture) error
 	GetPosture(ctx context.Context, stackID, name string) (*domain.Posture, error)
+	GetPostureByID(ctx context.Context, id string) (*domain.Posture, error)
 	ListPostures(ctx context.Context, stackID string) ([]*domain.Posture, error)
 	ListAllPostures(ctx context.Context) ([]*domain.Posture, error)
 	UpdatePosture(ctx context.Context, posture *domain.Posture) error
 	DeletePosture(ctx context.Context, stackID, name string) error
+	DeletePostureByID(ctx context.Context, id string) error
 	DeleteAllPosturesForStack(ctx context.Context, stackID string) error
 
 	// IP Sets
 	CreateIPSet(ctx context.Context, ipset *domain.IPSet) error
 	GetIPSet(ctx context.Context, stackID, name string) (*domain.IPSet, error)
+	GetIPSetByID(ctx context.Context, id string) (*domain.IPSet, error)
 	ListIPSets(ctx context.Context, stackID string) ([]*domain.IPSet, error)
 	ListAllIPSets(ctx context.Context) ([]*domain.IPSet, error)
 	UpdateIPSet(ctx context.Context, ipset *domain.IPSet) error
 	DeleteIPSet(ctx context.Context, stackID, name string) error
+	DeleteIPSetByID(ctx context.Context, id string) error
 	DeleteAllIPSetsForStack(ctx context.Context, stackID string) error
 
 	// ACL Tests

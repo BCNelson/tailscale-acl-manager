@@ -25,6 +25,9 @@ type SyncService struct {
 	mu          sync.Mutex
 	syncTimer   *time.Timer
 	syncPending bool
+
+	// Channels for waiters who want to block until sync completes
+	waiters []chan *domain.SyncResponse
 }
 
 // NewSyncService creates a new SyncService.
@@ -55,15 +58,83 @@ func (s *SyncService) TriggerSync() {
 
 	s.syncPending = true
 	s.syncTimer = time.AfterFunc(s.debounce, func() {
+		ctx := context.Background()
+		resp, err := s.doSync(ctx)
+		if err != nil {
+			log.Printf("Auto-sync failed: %v", err)
+			resp = &domain.SyncResponse{
+				Status: "failed",
+				Error:  err.Error(),
+			}
+		}
+
+		// Notify all waiters
 		s.mu.Lock()
 		s.syncPending = false
+		waiters := s.waiters
+		s.waiters = nil
 		s.mu.Unlock()
 
-		ctx := context.Background()
-		if _, err := s.doSync(ctx); err != nil {
-			log.Printf("Auto-sync failed: %v", err)
+		for _, ch := range waiters {
+			ch <- resp
+			close(ch)
 		}
 	})
+}
+
+// TriggerSyncAndWait triggers a debounced sync and waits for it to complete.
+// Returns the sync response once the debounced sync finishes.
+// If autoSync is disabled, this performs an immediate sync.
+func (s *SyncService) TriggerSyncAndWait(ctx context.Context) (*domain.SyncResponse, error) {
+	if !s.autoSync {
+		// If autoSync is disabled, just do a direct sync
+		return s.doSync(ctx)
+	}
+
+	s.mu.Lock()
+
+	// Cancel existing timer
+	if s.syncTimer != nil {
+		s.syncTimer.Stop()
+	}
+
+	// Create a channel to receive the result
+	resultCh := make(chan *domain.SyncResponse, 1)
+	s.waiters = append(s.waiters, resultCh)
+
+	s.syncPending = true
+	s.syncTimer = time.AfterFunc(s.debounce, func() {
+		syncCtx := context.Background()
+		resp, err := s.doSync(syncCtx)
+		if err != nil {
+			log.Printf("Auto-sync failed: %v", err)
+			resp = &domain.SyncResponse{
+				Status: "failed",
+				Error:  err.Error(),
+			}
+		}
+
+		// Notify all waiters
+		s.mu.Lock()
+		s.syncPending = false
+		waiters := s.waiters
+		s.waiters = nil
+		s.mu.Unlock()
+
+		for _, ch := range waiters {
+			ch <- resp
+			close(ch)
+		}
+	})
+	s.mu.Unlock()
+
+	// Wait for the result or context cancellation
+	select {
+	case resp := <-resultCh:
+		return resp, nil
+	case <-ctx.Done():
+		return nil, ctx.Err()
+	}
 }
 
 // GetMergedPolicy returns the current merged policy without syncing.

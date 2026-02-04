@@ -120,7 +120,30 @@ func (h *IPSetHandler) Get(w http.ResponseWriter, r *http.Request) {
 	respondJSON(w, http.StatusOK, ipset)
 }
 
-// Update updates an IP set.
+// GetByID gets an IP set by UUID.
+func (h *IPSetHandler) GetByID(w http.ResponseWriter, r *http.Request) {
+	stackID := chi.URLParam(r, "stack_id")
+	id := chi.URLParam(r, "id")
+	if stackID == "" || id == "" {
+		respondError(w, http.StatusBadRequest, "stack_id and id are required")
+		return
+	}
+
+	ipset, err := h.store.GetIPSetByID(r.Context(), id)
+	if err != nil {
+		handleError(w, err)
+		return
+	}
+
+	if ipset.StackID != stackID {
+		handleError(w, domain.ErrNotFound)
+		return
+	}
+
+	respondJSON(w, http.StatusOK, ipset)
+}
+
+// Update updates an IP set by name.
 func (h *IPSetHandler) Update(w http.ResponseWriter, r *http.Request) {
 	stackID := chi.URLParam(r, "stack_id")
 	name, _ := url.PathUnescape(chi.URLParam(r, "name"))
@@ -129,15 +152,43 @@ func (h *IPSetHandler) Update(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var req domain.UpdateIPSetRequest
-	if err := decodeJSON(r, &req); err != nil {
-		respondError(w, http.StatusBadRequest, "invalid request body")
-		return
-	}
-
 	ipset, err := h.store.GetIPSet(r.Context(), stackID, name)
 	if err != nil {
 		handleError(w, err)
+		return
+	}
+
+	h.updateIPSet(w, r, ipset)
+}
+
+// UpdateByID updates an IP set by UUID.
+func (h *IPSetHandler) UpdateByID(w http.ResponseWriter, r *http.Request) {
+	stackID := chi.URLParam(r, "stack_id")
+	id := chi.URLParam(r, "id")
+	if stackID == "" || id == "" {
+		respondError(w, http.StatusBadRequest, "stack_id and id are required")
+		return
+	}
+
+	ipset, err := h.store.GetIPSetByID(r.Context(), id)
+	if err != nil {
+		handleError(w, err)
+		return
+	}
+
+	if ipset.StackID != stackID {
+		handleError(w, domain.ErrNotFound)
+		return
+	}
+
+	h.updateIPSet(w, r, ipset)
+}
+
+// updateIPSet is a helper that performs the actual update logic.
+func (h *IPSetHandler) updateIPSet(w http.ResponseWriter, r *http.Request, ipset *domain.IPSet) {
+	var req domain.UpdateIPSetRequest
+	if err := decodeJSON(r, &req); err != nil {
+		respondError(w, http.StatusBadRequest, "invalid request body")
 		return
 	}
 
@@ -164,7 +215,7 @@ func (h *IPSetHandler) Update(w http.ResponseWriter, r *http.Request) {
 	respondJSON(w, http.StatusOK, ipset)
 }
 
-// Delete deletes an IP set.
+// Delete deletes an IP set by name.
 func (h *IPSetHandler) Delete(w http.ResponseWriter, r *http.Request) {
 	stackID := chi.URLParam(r, "stack_id")
 	name, _ := url.PathUnescape(chi.URLParam(r, "name"))
@@ -174,6 +225,34 @@ func (h *IPSetHandler) Delete(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if err := h.store.DeleteIPSet(r.Context(), stackID, name); err != nil {
+		handleError(w, err)
+		return
+	}
+
+	h.syncService.TriggerSync()
+	w.WriteHeader(http.StatusNoContent)
+}
+
+// DeleteByID deletes an IP set by UUID.
+func (h *IPSetHandler) DeleteByID(w http.ResponseWriter, r *http.Request) {
+	stackID := chi.URLParam(r, "stack_id")
+	id := chi.URLParam(r, "id")
+	if stackID == "" || id == "" {
+		respondError(w, http.StatusBadRequest, "stack_id and id are required")
+		return
+	}
+
+	ipset, err := h.store.GetIPSetByID(r.Context(), id)
+	if err != nil {
+		handleError(w, err)
+		return
+	}
+	if ipset.StackID != stackID {
+		handleError(w, domain.ErrNotFound)
+		return
+	}
+
+	if err := h.store.DeleteIPSetByID(r.Context(), id); err != nil {
 		handleError(w, err)
 		return
 	}

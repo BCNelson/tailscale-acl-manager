@@ -21,27 +21,61 @@ func respondJSON(w http.ResponseWriter, status int, data any) {
 	}
 }
 
-// respondError writes a JSON error response.
+// respondError writes a JSON error response using the new standardized format.
 func respondError(w http.ResponseWriter, status int, message string) {
-	respondJSON(w, status, &domain.APIError{
-		Code:    status,
-		Message: message,
+	code := httpStatusToErrorCode(status)
+	respondStandardError(w, status, code, message, "", nil)
+}
+
+// respondStandardError writes a standardized JSON error response.
+func respondStandardError(w http.ResponseWriter, status int, code, message, field string, details map[string]any) {
+	respondJSON(w, status, &domain.StandardErrorResponse{
+		Error: domain.StandardError{
+			Code:    code,
+			Message: message,
+			Field:   field,
+			Details: details,
+		},
 	})
+}
+
+// httpStatusToErrorCode converts HTTP status to error code.
+func httpStatusToErrorCode(status int) string {
+	switch status {
+	case http.StatusNotFound:
+		return domain.ErrCodeResourceNotFound
+	case http.StatusConflict:
+		return domain.ErrCodeResourceAlreadyExists
+	case http.StatusBadRequest:
+		return domain.ErrCodeInvalidInput
+	case http.StatusUnauthorized:
+		return domain.ErrCodeUnauthorized
+	case http.StatusPreconditionFailed:
+		return domain.ErrCodePreconditionFailed
+	default:
+		return domain.ErrCodeInternalError
+	}
 }
 
 // handleError converts domain errors to HTTP errors.
 func handleError(w http.ResponseWriter, err error) {
 	switch {
 	case errors.Is(err, domain.ErrNotFound):
-		respondError(w, http.StatusNotFound, "not found")
+		respondStandardError(w, http.StatusNotFound, domain.ErrCodeResourceNotFound, "resource not found", "", nil)
 	case errors.Is(err, domain.ErrAlreadyExists):
-		respondError(w, http.StatusConflict, "already exists")
+		respondStandardError(w, http.StatusConflict, domain.ErrCodeResourceAlreadyExists, "resource already exists", "", nil)
 	case errors.Is(err, domain.ErrInvalidInput):
-		respondError(w, http.StatusBadRequest, "invalid input")
+		respondStandardError(w, http.StatusBadRequest, domain.ErrCodeInvalidInput, "invalid input", "", nil)
 	case errors.Is(err, domain.ErrUnauthorized):
-		respondError(w, http.StatusUnauthorized, "unauthorized")
+		respondStandardError(w, http.StatusUnauthorized, domain.ErrCodeUnauthorized, "unauthorized", "", nil)
+	case errors.Is(err, domain.ErrPreconditionFailed):
+		respondStandardError(w, http.StatusPreconditionFailed, domain.ErrCodePreconditionFailed, "precondition failed", "", nil)
+	case errors.Is(err, domain.ErrSyncInProgress):
+		respondStandardError(w, http.StatusConflict, domain.ErrCodeSyncInProgress, "sync already in progress", "", nil)
+	case errors.Is(err, domain.ErrSyncFailed):
+		respondStandardError(w, http.StatusInternalServerError, domain.ErrCodeSyncFailed, "sync failed", "", nil)
 	default:
-		respondError(w, http.StatusInternalServerError, "internal server error")
+		respondStandardError(w, http.StatusInternalServerError, domain.ErrCodeInternalError, "internal server error", "", nil)
 	}
 }
 
@@ -79,18 +113,46 @@ func hashKey(key string) string {
 	return hex.EncodeToString(h[:])
 }
 
-// respondValidationError writes a JSON validation error response.
+// respondValidationError writes a JSON validation error response using standardized format.
 func respondValidationError(w http.ResponseWriter, field, value, message string) {
-	respondJSON(w, http.StatusBadRequest, &validation.ValidationError{
-		Field:   field,
-		Value:   value,
-		Message: message,
+	respondStandardError(w, http.StatusBadRequest, domain.ErrCodeValidationError, message, field, map[string]any{
+		"value": value,
 	})
 }
 
-// respondValidationErrors writes a JSON response for multiple validation errors.
+// respondValidationErrors writes a JSON response for multiple validation errors using standardized format.
 func respondValidationErrors(w http.ResponseWriter, errs validation.ValidationErrors) {
-	respondJSON(w, http.StatusBadRequest, map[string]any{
-		"errors": errs,
+	// Convert validation errors to details map
+	errList := make([]map[string]any, 0, len(errs))
+	for _, e := range errs {
+		errList = append(errList, map[string]any{
+			"field":   e.Field,
+			"value":   e.Value,
+			"message": e.Message,
+		})
+	}
+	respondStandardError(w, http.StatusBadRequest, domain.ErrCodeValidationError, "validation failed", "", map[string]any{
+		"errors": errList,
+	})
+}
+
+// shouldWaitForSync checks if the request has ?sync=true query parameter.
+func shouldWaitForSync(r *http.Request) bool {
+	return r.URL.Query().Get("sync") == "true"
+}
+
+// isDryRun checks if the request has ?dryRun=true query parameter.
+func isDryRun(r *http.Request) bool {
+	return r.URL.Query().Get("dryRun") == "true"
+}
+
+// respondDryRun writes a dry run response.
+func respondDryRun(w http.ResponseWriter, preview any) {
+	respondJSON(w, http.StatusOK, &domain.DryRunResponse{
+		Preview: preview,
+		DryRun:  true,
+		Validation: struct {
+			Valid bool `json:"valid"`
+		}{Valid: true},
 	})
 }

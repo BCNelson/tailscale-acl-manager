@@ -468,6 +468,48 @@ func (t *Tx) DeleteGroup(ctx context.Context, stackID, name string) error {
 	return deleteGroup(ctx, t.tx, stackID, name)
 }
 
+func getGroupByID(ctx context.Context, db dbInterface, id string) (*domain.Group, error) {
+	var group domain.Group
+	err := db.GetContext(ctx, &group,
+		`SELECT id, stack_id, name, created_at, updated_at FROM groups WHERE id = $1`, id)
+	if err == sql.ErrNoRows {
+		return nil, domain.ErrNotFound
+	}
+	if err != nil {
+		return nil, err
+	}
+	group.Members, err = getGroupMembers(ctx, db, group.ID)
+	return &group, err
+}
+
+func (s *Store) GetGroupByID(ctx context.Context, id string) (*domain.Group, error) {
+	return getGroupByID(ctx, s.db, id)
+}
+
+func (t *Tx) GetGroupByID(ctx context.Context, id string) (*domain.Group, error) {
+	return getGroupByID(ctx, t.tx, id)
+}
+
+func deleteGroupByID(ctx context.Context, db dbInterface, id string) error {
+	result, err := db.ExecContext(ctx, `DELETE FROM groups WHERE id = $1`, id)
+	if err != nil {
+		return err
+	}
+	rows, _ := result.RowsAffected()
+	if rows == 0 {
+		return domain.ErrNotFound
+	}
+	return nil
+}
+
+func (s *Store) DeleteGroupByID(ctx context.Context, id string) error {
+	return deleteGroupByID(ctx, s.db, id)
+}
+
+func (t *Tx) DeleteGroupByID(ctx context.Context, id string) error {
+	return deleteGroupByID(ctx, t.tx, id)
+}
+
 func deleteAllGroupsForStack(ctx context.Context, db dbInterface, stackID string) error {
 	_, err := db.ExecContext(ctx, `DELETE FROM groups WHERE stack_id = $1`, stackID)
 	return err
@@ -631,6 +673,48 @@ func (t *Tx) DeleteTagOwner(ctx context.Context, stackID, tag string) error {
 	return deleteTagOwner(ctx, t.tx, stackID, tag)
 }
 
+func getTagOwnerByID(ctx context.Context, db dbInterface, id string) (*domain.TagOwner, error) {
+	var tagOwner domain.TagOwner
+	err := db.GetContext(ctx, &tagOwner,
+		`SELECT id, stack_id, tag, created_at, updated_at FROM tag_owners WHERE id = $1`, id)
+	if err == sql.ErrNoRows {
+		return nil, domain.ErrNotFound
+	}
+	if err != nil {
+		return nil, err
+	}
+	tagOwner.Owners, err = getTagOwnerEntries(ctx, db, tagOwner.ID)
+	return &tagOwner, err
+}
+
+func (s *Store) GetTagOwnerByID(ctx context.Context, id string) (*domain.TagOwner, error) {
+	return getTagOwnerByID(ctx, s.db, id)
+}
+
+func (t *Tx) GetTagOwnerByID(ctx context.Context, id string) (*domain.TagOwner, error) {
+	return getTagOwnerByID(ctx, t.tx, id)
+}
+
+func deleteTagOwnerByID(ctx context.Context, db dbInterface, id string) error {
+	result, err := db.ExecContext(ctx, `DELETE FROM tag_owners WHERE id = $1`, id)
+	if err != nil {
+		return err
+	}
+	rows, _ := result.RowsAffected()
+	if rows == 0 {
+		return domain.ErrNotFound
+	}
+	return nil
+}
+
+func (s *Store) DeleteTagOwnerByID(ctx context.Context, id string) error {
+	return deleteTagOwnerByID(ctx, s.db, id)
+}
+
+func (t *Tx) DeleteTagOwnerByID(ctx context.Context, id string) error {
+	return deleteTagOwnerByID(ctx, t.tx, id)
+}
+
 func deleteAllTagOwnersForStack(ctx context.Context, db dbInterface, stackID string) error {
 	_, err := db.ExecContext(ctx, `DELETE FROM tag_owners WHERE stack_id = $1`, stackID)
 	return err
@@ -755,6 +839,44 @@ func (s *Store) DeleteHost(ctx context.Context, stackID, name string) error {
 
 func (t *Tx) DeleteHost(ctx context.Context, stackID, name string) error {
 	return deleteHost(ctx, t.tx, stackID, name)
+}
+
+func getHostByID(ctx context.Context, db dbInterface, id string) (*domain.Host, error) {
+	var host domain.Host
+	err := db.GetContext(ctx, &host,
+		`SELECT id, stack_id, name, address, created_at, updated_at FROM hosts WHERE id = $1`, id)
+	if err == sql.ErrNoRows {
+		return nil, domain.ErrNotFound
+	}
+	return &host, err
+}
+
+func (s *Store) GetHostByID(ctx context.Context, id string) (*domain.Host, error) {
+	return getHostByID(ctx, s.db, id)
+}
+
+func (t *Tx) GetHostByID(ctx context.Context, id string) (*domain.Host, error) {
+	return getHostByID(ctx, t.tx, id)
+}
+
+func deleteHostByID(ctx context.Context, db dbInterface, id string) error {
+	result, err := db.ExecContext(ctx, `DELETE FROM hosts WHERE id = $1`, id)
+	if err != nil {
+		return err
+	}
+	rows, _ := result.RowsAffected()
+	if rows == 0 {
+		return domain.ErrNotFound
+	}
+	return nil
+}
+
+func (s *Store) DeleteHostByID(ctx context.Context, id string) error {
+	return deleteHostByID(ctx, s.db, id)
+}
+
+func (t *Tx) DeleteHostByID(ctx context.Context, id string) error {
+	return deleteHostByID(ctx, t.tx, id)
 }
 
 func deleteAllHostsForStack(ctx context.Context, db dbInterface, stackID string) error {
@@ -1964,6 +2086,48 @@ func (t *Tx) DeletePosture(ctx context.Context, stackID, name string) error {
 	return deletePosture(ctx, t.tx, stackID, name)
 }
 
+func getPostureByID(ctx context.Context, db dbInterface, id string) (*domain.Posture, error) {
+	var posture domain.Posture
+	err := db.GetContext(ctx, &posture,
+		`SELECT id, stack_id, name, created_at, updated_at FROM postures WHERE id = $1`, id)
+	if err == sql.ErrNoRows {
+		return nil, domain.ErrNotFound
+	}
+	if err != nil {
+		return nil, err
+	}
+	posture.Rules, _ = getPostureRules(ctx, db, posture.ID)
+	return &posture, nil
+}
+
+func (s *Store) GetPostureByID(ctx context.Context, id string) (*domain.Posture, error) {
+	return getPostureByID(ctx, s.db, id)
+}
+
+func (t *Tx) GetPostureByID(ctx context.Context, id string) (*domain.Posture, error) {
+	return getPostureByID(ctx, t.tx, id)
+}
+
+func deletePostureByID(ctx context.Context, db dbInterface, id string) error {
+	result, err := db.ExecContext(ctx, `DELETE FROM postures WHERE id = $1`, id)
+	if err != nil {
+		return err
+	}
+	rows, _ := result.RowsAffected()
+	if rows == 0 {
+		return domain.ErrNotFound
+	}
+	return nil
+}
+
+func (s *Store) DeletePostureByID(ctx context.Context, id string) error {
+	return deletePostureByID(ctx, s.db, id)
+}
+
+func (t *Tx) DeletePostureByID(ctx context.Context, id string) error {
+	return deletePostureByID(ctx, t.tx, id)
+}
+
 func deleteAllPosturesForStack(ctx context.Context, db dbInterface, stackID string) error {
 	_, err := db.ExecContext(ctx, `DELETE FROM postures WHERE stack_id = $1`, stackID)
 	return err
@@ -2125,6 +2289,48 @@ func (s *Store) DeleteIPSet(ctx context.Context, stackID, name string) error {
 
 func (t *Tx) DeleteIPSet(ctx context.Context, stackID, name string) error {
 	return deleteIPSet(ctx, t.tx, stackID, name)
+}
+
+func getIPSetByID(ctx context.Context, db dbInterface, id string) (*domain.IPSet, error) {
+	var ipset domain.IPSet
+	err := db.GetContext(ctx, &ipset,
+		`SELECT id, stack_id, name, created_at, updated_at FROM ip_sets WHERE id = $1`, id)
+	if err == sql.ErrNoRows {
+		return nil, domain.ErrNotFound
+	}
+	if err != nil {
+		return nil, err
+	}
+	ipset.Addresses, _ = getIPSetAddresses(ctx, db, ipset.ID)
+	return &ipset, nil
+}
+
+func (s *Store) GetIPSetByID(ctx context.Context, id string) (*domain.IPSet, error) {
+	return getIPSetByID(ctx, s.db, id)
+}
+
+func (t *Tx) GetIPSetByID(ctx context.Context, id string) (*domain.IPSet, error) {
+	return getIPSetByID(ctx, t.tx, id)
+}
+
+func deleteIPSetByID(ctx context.Context, db dbInterface, id string) error {
+	result, err := db.ExecContext(ctx, `DELETE FROM ip_sets WHERE id = $1`, id)
+	if err != nil {
+		return err
+	}
+	rows, _ := result.RowsAffected()
+	if rows == 0 {
+		return domain.ErrNotFound
+	}
+	return nil
+}
+
+func (s *Store) DeleteIPSetByID(ctx context.Context, id string) error {
+	return deleteIPSetByID(ctx, s.db, id)
+}
+
+func (t *Tx) DeleteIPSetByID(ctx context.Context, id string) error {
+	return deleteIPSetByID(ctx, t.tx, id)
 }
 
 func deleteAllIPSetsForStack(ctx context.Context, db dbInterface, stackID string) error {

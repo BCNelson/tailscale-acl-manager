@@ -93,3 +93,18 @@ type SyncResponse struct {
 type RollbackRequest struct {
 	VersionID string `json:"version_id"`
 }
+
+// MutationResponse wraps a resource with optional sync result for ?sync=true requests.
+type MutationResponse struct {
+	Data       any           `json:"data"`
+	SyncResult *SyncResponse `json:"syncResult,omitempty"`
+}
+
+// DryRunResponse is returned for ?dryRun=true requests.
+type DryRunResponse struct {
+	Preview    any  `json:"preview"`
+	DryRun     bool `json:"dryRun"`
+	Validation struct {
+		Valid bool `json:"valid"`
+	} `json:"validation"`
+}

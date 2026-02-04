@@ -249,7 +249,7 @@ func TestGroupCRUD(t *testing.T) {
 	}
 
 	// Get group
-	rr = ts.request("GET", "/api/v1/stacks/"+stack.ID+"/groups/group:developers", nil, ts.bootstrapKey)
+	rr = ts.request("GET", "/api/v1/stacks/"+stack.ID+"/groups/name/group:developers", nil, ts.bootstrapKey)
 	if rr.Code != http.StatusOK {
 		t.Errorf("Expected status 200, got %d", rr.Code)
 	}
@@ -270,7 +270,7 @@ func TestGroupCRUD(t *testing.T) {
 	updateReq := domain.UpdateGroupRequest{
 		Members: []string{"user1@example.com", "user2@example.com", "user3@example.com"},
 	}
-	rr = ts.request("PUT", "/api/v1/stacks/"+stack.ID+"/groups/group:developers", updateReq, ts.bootstrapKey)
+	rr = ts.request("PUT", "/api/v1/stacks/"+stack.ID+"/groups/name/group:developers", updateReq, ts.bootstrapKey)
 	if rr.Code != http.StatusOK {
 		t.Errorf("Expected status 200, got %d", rr.Code)
 	}
@@ -282,7 +282,7 @@ func TestGroupCRUD(t *testing.T) {
 	}
 
 	// Delete group
-	rr = ts.request("DELETE", "/api/v1/stacks/"+stack.ID+"/groups/group:developers", nil, ts.bootstrapKey)
+	rr = ts.request("DELETE", "/api/v1/stacks/"+stack.ID+"/groups/name/group:developers", nil, ts.bootstrapKey)
 	if rr.Code != http.StatusNoContent {
 		t.Errorf("Expected status 204, got %d", rr.Code)
 	}
@@ -362,14 +362,14 @@ func TestHostCRUD(t *testing.T) {
 	}
 
 	// Get host
-	rr = ts.request("GET", "/api/v1/stacks/"+stack.ID+"/hosts/webserver", nil, ts.bootstrapKey)
+	rr = ts.request("GET", "/api/v1/stacks/"+stack.ID+"/hosts/name/webserver", nil, ts.bootstrapKey)
 	if rr.Code != http.StatusOK {
 		t.Errorf("Expected status 200, got %d", rr.Code)
 	}
 
 	// Update host
 	updateReq := domain.UpdateHostRequest{Address: "10.0.0.2"}
-	rr = ts.request("PUT", "/api/v1/stacks/"+stack.ID+"/hosts/webserver", updateReq, ts.bootstrapKey)
+	rr = ts.request("PUT", "/api/v1/stacks/"+stack.ID+"/hosts/name/webserver", updateReq, ts.bootstrapKey)
 	if rr.Code != http.StatusOK {
 		t.Errorf("Expected status 200, got %d", rr.Code)
 	}
@@ -381,7 +381,7 @@ func TestHostCRUD(t *testing.T) {
 	}
 
 	// Delete host
-	rr = ts.request("DELETE", "/api/v1/stacks/"+stack.ID+"/hosts/webserver", nil, ts.bootstrapKey)
+	rr = ts.request("DELETE", "/api/v1/stacks/"+stack.ID+"/hosts/name/webserver", nil, ts.bootstrapKey)
 	if rr.Code != http.StatusNoContent {
 		t.Errorf("Expected status 204, got %d", rr.Code)
 	}
@@ -422,7 +422,7 @@ func TestBulkStateReplace(t *testing.T) {
 	}
 
 	// Verify old group is gone
-	rr = ts.request("GET", "/api/v1/stacks/"+stack.ID+"/groups/group:old", nil, ts.bootstrapKey)
+	rr = ts.request("GET", "/api/v1/stacks/"+stack.ID+"/groups/name/group:old", nil, ts.bootstrapKey)
 	if rr.Code != http.StatusNotFound {
 		t.Errorf("Expected old group to be deleted, got status %d", rr.Code)
 	}
@@ -558,13 +558,13 @@ func TestTagOwnerCRUD(t *testing.T) {
 	}
 
 	// Get tag owner
-	rr = ts.request("GET", "/api/v1/stacks/"+stack.ID+"/tags/tag:server", nil, ts.bootstrapKey)
+	rr = ts.request("GET", "/api/v1/stacks/"+stack.ID+"/tags/name/tag:server", nil, ts.bootstrapKey)
 	if rr.Code != http.StatusOK {
 		t.Errorf("Expected status 200, got %d", rr.Code)
 	}
 
 	// Delete tag owner
-	rr = ts.request("DELETE", "/api/v1/stacks/"+stack.ID+"/tags/tag:server", nil, ts.bootstrapKey)
+	rr = ts.request("DELETE", "/api/v1/stacks/"+stack.ID+"/tags/name/tag:server", nil, ts.bootstrapKey)
 	if rr.Code != http.StatusNoContent {
 		t.Errorf("Expected status 204, got %d", rr.Code)
 	}

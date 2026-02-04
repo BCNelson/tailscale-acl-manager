@@ -5,6 +5,7 @@ import (
 	"crypto/sha256"
 	"crypto/subtle"
 	"encoding/hex"
+	"encoding/json"
 	"net/http"
 	"strings"
 
@@ -16,6 +17,30 @@ type contextKey string
 
 const APIKeyContextKey contextKey = "api_key"
 
+// respondAuthError writes a standardized auth error response.
+func respondAuthError(w http.ResponseWriter, message string) {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusUnauthorized)
+	json.NewEncoder(w).Encode(&domain.StandardErrorResponse{
+		Error: domain.StandardError{
+			Code:    domain.ErrCodeUnauthorized,
+			Message: message,
+		},
+	})
+}
+
+// respondInternalError writes a standardized internal error response.
+func respondInternalError(w http.ResponseWriter) {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusInternalServerError)
+	json.NewEncoder(w).Encode(&domain.StandardErrorResponse{
+		Error: domain.StandardError{
+			Code:    domain.ErrCodeInternalError,
+			Message: "internal server error",
+		},
+	})
+}
+
 // Auth creates authentication middleware.
 func Auth(store storage.Storage, bootstrapKey string) func(http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
@@ -23,18 +48,18 @@ func Auth(store storage.Storage, bootstrapKey string) func(http.Handler) http.Ha
 			// Extract the API key from the Authorization header
 			authHeader := r.Header.Get("Authorization")
 			if authHeader == "" {
-				http.Error(w, `{"code":401,"message":"missing authorization header"}`, http.StatusUnauthorized)
+				respondAuthError(w, "missing authorization header")
 				return
 			}
 
 			if !strings.HasPrefix(authHeader, "Bearer ") {
-				http.Error(w, `{"code":401,"message":"invalid authorization header format"}`, http.StatusUnauthorized)
+				respondAuthError(w, "invalid authorization header format")
 				return
 			}
 
 			apiKey := strings.TrimPrefix(authHeader, "Bearer ")
 			if apiKey == "" {
-				http.Error(w, `{"code":401,"message":"empty API key"}`, http.StatusUnauthorized)
+				respondAuthError(w, "empty API key")
 				return
 			}
 
@@ -43,7 +68,7 @@ func Auth(store storage.Storage, bootstrapKey string) func(http.Handler) http.Ha
 			// Check if we have any API keys in the database
 			keyCount, err := store.CountAPIKeys(ctx)
 			if err != nil {
-				http.Error(w, `{"code":500,"message":"internal server error"}`, http.StatusInternalServerError)
+				respondInternalError(w)
 				return
 			}
 
@@ -65,10 +90,10 @@ func Auth(store storage.Storage, bootstrapKey string) func(http.Handler) http.Ha
 			storedKey, err := store.GetAPIKeyByHash(ctx, keyHash)
 			if err != nil {
 				if err == domain.ErrNotFound {
-					http.Error(w, `{"code":401,"message":"invalid API key"}`, http.StatusUnauthorized)
+					respondAuthError(w, "invalid API key")
 					return
 				}
-				http.Error(w, `{"code":500,"message":"internal server error"}`, http.StatusInternalServerError)
+				respondInternalError(w)
 				return
 			}
 

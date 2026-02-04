@@ -76,8 +76,28 @@ func (h *GroupHandler) Create(w http.ResponseWriter, r *http.Request) {
 		UpdatedAt: now,
 	}
 
+	// Handle dry run mode
+	if isDryRun(r) {
+		respondDryRun(w, group)
+		return
+	}
+
 	if err := h.store.CreateGroup(r.Context(), group); err != nil {
 		handleError(w, err)
+		return
+	}
+
+	// Handle sync mode
+	if shouldWaitForSync(r) {
+		syncResp, err := h.syncService.TriggerSyncAndWait(r.Context())
+		if err != nil {
+			handleError(w, err)
+			return
+		}
+		respondJSON(w, http.StatusCreated, &domain.MutationResponse{
+			Data:       group,
+			SyncResult: syncResp,
+		})
 		return
 	}
 
@@ -117,10 +137,36 @@ func (h *GroupHandler) Get(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	SetGroupETag(w, group)
 	respondJSON(w, http.StatusOK, group)
 }
 
-// Update updates a group.
+// GetByID gets a group by UUID.
+func (h *GroupHandler) GetByID(w http.ResponseWriter, r *http.Request) {
+	stackID := chi.URLParam(r, "stack_id")
+	id := chi.URLParam(r, "id")
+	if stackID == "" || id == "" {
+		respondError(w, http.StatusBadRequest, "stack_id and id are required")
+		return
+	}
+
+	group, err := h.store.GetGroupByID(r.Context(), id)
+	if err != nil {
+		handleError(w, err)
+		return
+	}
+
+	// Verify the group belongs to the requested stack
+	if group.StackID != stackID {
+		handleError(w, domain.ErrNotFound)
+		return
+	}
+
+	SetGroupETag(w, group)
+	respondJSON(w, http.StatusOK, group)
+}
+
+// Update updates a group by name.
 func (h *GroupHandler) Update(w http.ResponseWriter, r *http.Request) {
 	stackID := chi.URLParam(r, "stack_id")
 	name, _ := url.PathUnescape(chi.URLParam(r, "name"))
@@ -129,15 +175,50 @@ func (h *GroupHandler) Update(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var req domain.UpdateGroupRequest
-	if err := decodeJSON(r, &req); err != nil {
-		respondError(w, http.StatusBadRequest, "invalid request body")
-		return
-	}
-
 	group, err := h.store.GetGroup(r.Context(), stackID, name)
 	if err != nil {
 		handleError(w, err)
+		return
+	}
+
+	h.updateGroup(w, r, group)
+}
+
+// UpdateByID updates a group by UUID.
+func (h *GroupHandler) UpdateByID(w http.ResponseWriter, r *http.Request) {
+	stackID := chi.URLParam(r, "stack_id")
+	id := chi.URLParam(r, "id")
+	if stackID == "" || id == "" {
+		respondError(w, http.StatusBadRequest, "stack_id and id are required")
+		return
+	}
+
+	group, err := h.store.GetGroupByID(r.Context(), id)
+	if err != nil {
+		handleError(w, err)
+		return
+	}
+
+	// Verify the group belongs to the requested stack
+	if group.StackID != stackID {
+		handleError(w, domain.ErrNotFound)
+		return
+	}
+
+	h.updateGroup(w, r, group)
+}
+
+// updateGroup is a helper that performs the actual update logic.
+func (h *GroupHandler) updateGroup(w http.ResponseWriter, r *http.Request, group *domain.Group) {
+	// Check If-Match header for optimistic concurrency (optional)
+	if !CheckGroupIfMatch(r, group) {
+		RespondPreconditionFailed(w, "group", group.ID, group.UpdatedAt)
+		return
+	}
+
+	var req domain.UpdateGroupRequest
+	if err := decodeJSON(r, &req); err != nil {
+		respondError(w, http.StatusBadRequest, "invalid request body")
 		return
 	}
 
@@ -155,8 +236,28 @@ func (h *GroupHandler) Update(w http.ResponseWriter, r *http.Request) {
 
 	group.Members = req.Members
 
+	// Handle dry run mode
+	if isDryRun(r) {
+		respondDryRun(w, group)
+		return
+	}
+
 	if err := h.store.UpdateGroup(r.Context(), group); err != nil {
 		handleError(w, err)
+		return
+	}
+
+	// Handle sync mode
+	if shouldWaitForSync(r) {
+		syncResp, err := h.syncService.TriggerSyncAndWait(r.Context())
+		if err != nil {
+			handleError(w, err)
+			return
+		}
+		respondJSON(w, http.StatusOK, &domain.MutationResponse{
+			Data:       group,
+			SyncResult: syncResp,
+		})
 		return
 	}
 
@@ -164,7 +265,7 @@ func (h *GroupHandler) Update(w http.ResponseWriter, r *http.Request) {
 	respondJSON(w, http.StatusOK, group)
 }
 
-// Delete deletes a group.
+// Delete deletes a group by name.
 func (h *GroupHandler) Delete(w http.ResponseWriter, r *http.Request) {
 	stackID := chi.URLParam(r, "stack_id")
 	name, _ := url.PathUnescape(chi.URLParam(r, "name"))
@@ -175,6 +276,53 @@ func (h *GroupHandler) Delete(w http.ResponseWriter, r *http.Request) {
 
 	if err := h.store.DeleteGroup(r.Context(), stackID, name); err != nil {
 		handleError(w, err)
+		return
+	}
+
+	h.respondAfterDelete(w, r)
+}
+
+// DeleteByID deletes a group by UUID.
+func (h *GroupHandler) DeleteByID(w http.ResponseWriter, r *http.Request) {
+	stackID := chi.URLParam(r, "stack_id")
+	id := chi.URLParam(r, "id")
+	if stackID == "" || id == "" {
+		respondError(w, http.StatusBadRequest, "stack_id and id are required")
+		return
+	}
+
+	// First verify the group belongs to the requested stack
+	group, err := h.store.GetGroupByID(r.Context(), id)
+	if err != nil {
+		handleError(w, err)
+		return
+	}
+	if group.StackID != stackID {
+		handleError(w, domain.ErrNotFound)
+		return
+	}
+
+	if err := h.store.DeleteGroupByID(r.Context(), id); err != nil {
+		handleError(w, err)
+		return
+	}
+
+	h.respondAfterDelete(w, r)
+}
+
+// respondAfterDelete handles the response after a delete operation, including sync mode.
+func (h *GroupHandler) respondAfterDelete(w http.ResponseWriter, r *http.Request) {
+	// Handle sync mode
+	if shouldWaitForSync(r) {
+		syncResp, err := h.syncService.TriggerSyncAndWait(r.Context())
+		if err != nil {
+			handleError(w, err)
+			return
+		}
+		respondJSON(w, http.StatusOK, &domain.MutationResponse{
+			Data:       nil,
+			SyncResult: syncResp,
+		})
 		return
 	}
 

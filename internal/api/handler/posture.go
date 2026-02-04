@@ -100,7 +100,30 @@ func (h *PostureHandler) Get(w http.ResponseWriter, r *http.Request) {
 	respondJSON(w, http.StatusOK, posture)
 }
 
-// Update updates a posture.
+// GetByID gets a posture by UUID.
+func (h *PostureHandler) GetByID(w http.ResponseWriter, r *http.Request) {
+	stackID := chi.URLParam(r, "stack_id")
+	id := chi.URLParam(r, "id")
+	if stackID == "" || id == "" {
+		respondError(w, http.StatusBadRequest, "stack_id and id are required")
+		return
+	}
+
+	posture, err := h.store.GetPostureByID(r.Context(), id)
+	if err != nil {
+		handleError(w, err)
+		return
+	}
+
+	if posture.StackID != stackID {
+		handleError(w, domain.ErrNotFound)
+		return
+	}
+
+	respondJSON(w, http.StatusOK, posture)
+}
+
+// Update updates a posture by name.
 func (h *PostureHandler) Update(w http.ResponseWriter, r *http.Request) {
 	stackID := chi.URLParam(r, "stack_id")
 	name, _ := url.PathUnescape(chi.URLParam(r, "name"))
@@ -109,15 +132,43 @@ func (h *PostureHandler) Update(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var req domain.UpdatePostureRequest
-	if err := decodeJSON(r, &req); err != nil {
-		respondError(w, http.StatusBadRequest, "invalid request body")
-		return
-	}
-
 	posture, err := h.store.GetPosture(r.Context(), stackID, name)
 	if err != nil {
 		handleError(w, err)
+		return
+	}
+
+	h.updatePosture(w, r, posture)
+}
+
+// UpdateByID updates a posture by UUID.
+func (h *PostureHandler) UpdateByID(w http.ResponseWriter, r *http.Request) {
+	stackID := chi.URLParam(r, "stack_id")
+	id := chi.URLParam(r, "id")
+	if stackID == "" || id == "" {
+		respondError(w, http.StatusBadRequest, "stack_id and id are required")
+		return
+	}
+
+	posture, err := h.store.GetPostureByID(r.Context(), id)
+	if err != nil {
+		handleError(w, err)
+		return
+	}
+
+	if posture.StackID != stackID {
+		handleError(w, domain.ErrNotFound)
+		return
+	}
+
+	h.updatePosture(w, r, posture)
+}
+
+// updatePosture is a helper that performs the actual update logic.
+func (h *PostureHandler) updatePosture(w http.ResponseWriter, r *http.Request, posture *domain.Posture) {
+	var req domain.UpdatePostureRequest
+	if err := decodeJSON(r, &req); err != nil {
+		respondError(w, http.StatusBadRequest, "invalid request body")
 		return
 	}
 
@@ -132,7 +183,7 @@ func (h *PostureHandler) Update(w http.ResponseWriter, r *http.Request) {
 	respondJSON(w, http.StatusOK, posture)
 }
 
-// Delete deletes a posture.
+// Delete deletes a posture by name.
 func (h *PostureHandler) Delete(w http.ResponseWriter, r *http.Request) {
 	stackID := chi.URLParam(r, "stack_id")
 	name, _ := url.PathUnescape(chi.URLParam(r, "name"))
@@ -142,6 +193,34 @@ func (h *PostureHandler) Delete(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if err := h.store.DeletePosture(r.Context(), stackID, name); err != nil {
+		handleError(w, err)
+		return
+	}
+
+	h.syncService.TriggerSync()
+	w.WriteHeader(http.StatusNoContent)
+}
+
+// DeleteByID deletes a posture by UUID.
+func (h *PostureHandler) DeleteByID(w http.ResponseWriter, r *http.Request) {
+	stackID := chi.URLParam(r, "stack_id")
+	id := chi.URLParam(r, "id")
+	if stackID == "" || id == "" {
+		respondError(w, http.StatusBadRequest, "stack_id and id are required")
+		return
+	}
+
+	posture, err := h.store.GetPostureByID(r.Context(), id)
+	if err != nil {
+		handleError(w, err)
+		return
+	}
+	if posture.StackID != stackID {
+		handleError(w, domain.ErrNotFound)
+		return
+	}
+
+	if err := h.store.DeletePostureByID(r.Context(), id); err != nil {
 		handleError(w, err)
 		return
 	}
