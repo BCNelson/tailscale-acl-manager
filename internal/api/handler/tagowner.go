@@ -86,22 +86,7 @@ func (h *TagOwnerHandler) Create(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Handle sync mode
-	if shouldWaitForSync(r) {
-		syncResp, err := h.syncService.TriggerSyncAndWait(r.Context())
-		if err != nil {
-			handleError(w, err)
-			return
-		}
-		respondJSON(w, http.StatusCreated, &domain.MutationResponse{
-			Data:       tagOwner,
-			SyncResult: syncResp,
-		})
-		return
-	}
-
-	h.syncService.TriggerSync()
-	respondJSON(w, http.StatusCreated, tagOwner)
+	respondMutation(w, r, http.StatusCreated, tagOwner, h.syncService)
 }
 
 // List lists all tag owners for a stack.
@@ -238,22 +223,7 @@ func (h *TagOwnerHandler) updateTagOwner(w http.ResponseWriter, r *http.Request,
 		return
 	}
 
-	// Handle sync mode
-	if shouldWaitForSync(r) {
-		syncResp, err := h.syncService.TriggerSyncAndWait(r.Context())
-		if err != nil {
-			handleError(w, err)
-			return
-		}
-		respondJSON(w, http.StatusOK, &domain.MutationResponse{
-			Data:       tagOwner,
-			SyncResult: syncResp,
-		})
-		return
-	}
-
-	h.syncService.TriggerSync()
-	respondJSON(w, http.StatusOK, tagOwner)
+	respondMutation(w, r, http.StatusOK, tagOwner, h.syncService)
 }
 
 // Delete deletes a tag owner by tag.
@@ -303,20 +273,5 @@ func (h *TagOwnerHandler) DeleteByID(w http.ResponseWriter, r *http.Request) {
 
 // respondAfterDelete handles the response after a delete operation, including sync mode.
 func (h *TagOwnerHandler) respondAfterDelete(w http.ResponseWriter, r *http.Request) {
-	// Handle sync mode
-	if shouldWaitForSync(r) {
-		syncResp, err := h.syncService.TriggerSyncAndWait(r.Context())
-		if err != nil {
-			handleError(w, err)
-			return
-		}
-		respondJSON(w, http.StatusOK, &domain.MutationResponse{
-			Data:       nil,
-			SyncResult: syncResp,
-		})
-		return
-	}
-
-	h.syncService.TriggerSync()
-	w.WriteHeader(http.StatusNoContent)
+	respondDelete(w, r, h.syncService)
 }

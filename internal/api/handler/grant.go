@@ -77,8 +77,7 @@ func (h *GrantHandler) Create(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	h.syncService.TriggerSync()
-	respondJSON(w, http.StatusCreated, grant)
+	respondMutation(w, r, http.StatusCreated, grant, h.syncService)
 }
 
 // List lists all grants for a stack.
@@ -172,8 +171,7 @@ func (h *GrantHandler) Update(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	h.syncService.TriggerSync()
-	respondJSON(w, http.StatusOK, grant)
+	respondMutation(w, r, http.StatusOK, grant, h.syncService)
 }
 
 // Delete deletes a grant.
@@ -189,6 +187,5 @@ func (h *GrantHandler) Delete(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	h.syncService.TriggerSync()
-	w.WriteHeader(http.StatusNoContent)
+	respondDelete(w, r, h.syncService)
 }

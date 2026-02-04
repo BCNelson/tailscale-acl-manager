@@ -86,8 +86,7 @@ func (h *AutoApproverHandler) Create(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	h.syncService.TriggerSync()
-	respondJSON(w, http.StatusCreated, aa)
+	respondMutation(w, r, http.StatusCreated, aa, h.syncService)
 }
 
 // List lists all auto approvers for a stack.
@@ -163,8 +162,7 @@ func (h *AutoApproverHandler) Update(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	h.syncService.TriggerSync()
-	respondJSON(w, http.StatusOK, aa)
+	respondMutation(w, r, http.StatusOK, aa, h.syncService)
 }
 
 // Delete deletes an auto approver.
@@ -180,6 +178,5 @@ func (h *AutoApproverHandler) Delete(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	h.syncService.TriggerSync()
-	w.WriteHeader(http.StatusNoContent)
+	respondDelete(w, r, h.syncService)
 }

@@ -6,12 +6,12 @@ import "time"
 // Auto-approvers are merged additively across stacks.
 type AutoApprover struct {
 	ID        string    `json:"id" db:"id"`
-	StackID   string    `json:"stack_id" db:"stack_id"`
+	StackID   string    `json:"stackId" db:"stack_id"`
 	Type      string    `json:"type" db:"type"` // "routes" or "exitNode"
 	Match     string    `json:"match" db:"match"` // Route CIDR or "*" for exit nodes
 	Approvers []string  `json:"approvers" db:"-"`
-	CreatedAt time.Time `json:"created_at" db:"created_at"`
-	UpdatedAt time.Time `json:"updated_at" db:"updated_at"`
+	CreatedAt time.Time `json:"createdAt" db:"created_at"`
+	UpdatedAt time.Time `json:"updatedAt" db:"updated_at"`
 }
 
 // CreateAutoApproverRequest is the request body for creating an auto-approver.
