@@ -6,6 +6,7 @@ import (
 	"embed"
 	"encoding/json"
 	"fmt"
+	"strings"
 	"time"
 
 	"github.com/bcnelson/tailscale-acl-manager/internal/domain"
@@ -18,6 +19,31 @@ import (
 
 //go:embed migrations/*.sql
 var embedMigrations embed.FS
+
+// isUniqueViolation checks if an error is a UNIQUE constraint violation.
+func isUniqueViolation(err error) bool {
+	if err == nil {
+		return false
+	}
+	errStr := err.Error()
+	// SQLite
+	if strings.Contains(errStr, "UNIQUE constraint failed") {
+		return true
+	}
+	// PostgreSQL
+	if strings.Contains(errStr, "duplicate key value violates unique constraint") {
+		return true
+	}
+	return false
+}
+
+// wrapUniqueError converts UNIQUE violations to domain.ErrAlreadyExists.
+func wrapUniqueError(err error) error {
+	if isUniqueViolation(err) {
+		return domain.ErrAlreadyExists
+	}
+	return err
+}
 
 // Store implements the storage.Storage interface using SQL.
 type Store struct {
@@ -206,7 +232,7 @@ func createStack(ctx context.Context, db dbInterface, stack *domain.Stack) error
 		`INSERT INTO stacks (id, name, description, priority, created_at, updated_at)
 		 VALUES ($1, $2, $3, $4, $5, $6)`,
 		stack.ID, stack.Name, stack.Description, stack.Priority, stack.CreatedAt, stack.UpdatedAt)
-	return err
+	return wrapUniqueError(err)
 }
 
 func (s *Store) CreateStack(ctx context.Context, stack *domain.Stack) error {
@@ -324,7 +350,7 @@ func createGroup(ctx context.Context, db dbInterface, group *domain.Group) error
 		 VALUES ($1, $2, $3, $4, $5)`,
 		group.ID, group.StackID, group.Name, group.CreatedAt, group.UpdatedAt)
 	if err != nil {
-		return err
+		return wrapUniqueError(err)
 	}
 	return insertGroupMembers(ctx, db, group.ID, group.Members)
 }
@@ -530,7 +556,7 @@ func createTagOwner(ctx context.Context, db dbInterface, tagOwner *domain.TagOwn
 		 VALUES ($1, $2, $3, $4, $5)`,
 		tagOwner.ID, tagOwner.StackID, tagOwner.Tag, tagOwner.CreatedAt, tagOwner.UpdatedAt)
 	if err != nil {
-		return err
+		return wrapUniqueError(err)
 	}
 	return insertTagOwnerEntries(ctx, db, tagOwner.ID, tagOwner.Owners)
 }
@@ -734,7 +760,7 @@ func createHost(ctx context.Context, db dbInterface, host *domain.Host) error {
 		`INSERT INTO hosts (id, stack_id, name, address, created_at, updated_at)
 		 VALUES ($1, $2, $3, $4, $5, $6)`,
 		host.ID, host.StackID, host.Name, host.Address, host.CreatedAt, host.UpdatedAt)
-	return err
+	return wrapUniqueError(err)
 }
 
 func (s *Store) CreateHost(ctx context.Context, host *domain.Host) error {
@@ -899,7 +925,7 @@ func createACLRule(ctx context.Context, db dbInterface, rule *domain.ACLRule) er
 		 VALUES ($1, $2, $3, $4, $5, $6, $7)`,
 		rule.ID, rule.StackID, rule.Order, rule.Action, rule.Protocol, rule.CreatedAt, rule.UpdatedAt)
 	if err != nil {
-		return err
+		return wrapUniqueError(err)
 	}
 	if err := insertACLRuleSources(ctx, db, rule.ID, rule.Sources); err != nil {
 		return err
@@ -1092,7 +1118,7 @@ func createSSHRule(ctx context.Context, db dbInterface, rule *domain.SSHRule) er
 		 VALUES ($1, $2, $3, $4, $5, $6, $7)`,
 		rule.ID, rule.StackID, rule.Order, rule.Action, rule.CheckPeriod, rule.CreatedAt, rule.UpdatedAt)
 	if err != nil {
-		return err
+		return wrapUniqueError(err)
 	}
 	if err := insertSSHRuleSources(ctx, db, rule.ID, rule.Sources); err != nil {
 		return err
@@ -1314,7 +1340,7 @@ func createGrant(ctx context.Context, db dbInterface, grant *domain.Grant) error
 		 VALUES ($1, $2, $3, $4, $5, $6)`,
 		grant.ID, grant.StackID, grant.Order, string(appJSON), grant.CreatedAt, grant.UpdatedAt)
 	if err != nil {
-		return err
+		return wrapUniqueError(err)
 	}
 	if err := insertGrantSources(ctx, db, grant.ID, grant.Sources); err != nil {
 		return err
@@ -1559,7 +1585,7 @@ func createAutoApprover(ctx context.Context, db dbInterface, aa *domain.AutoAppr
 		 VALUES ($1, $2, $3, $4, $5, $6)`,
 		aa.ID, aa.StackID, aa.Type, aa.Match, aa.CreatedAt, aa.UpdatedAt)
 	if err != nil {
-		return err
+		return wrapUniqueError(err)
 	}
 	return insertAutoApproverEntries(ctx, db, aa.ID, aa.Approvers)
 }
@@ -1724,7 +1750,7 @@ func createNodeAttr(ctx context.Context, db dbInterface, attr *domain.NodeAttr) 
 		 VALUES ($1, $2, $3, $4, $5, $6)`,
 		attr.ID, attr.StackID, attr.Order, string(appJSON), attr.CreatedAt, attr.UpdatedAt)
 	if err != nil {
-		return err
+		return wrapUniqueError(err)
 	}
 	if err := insertNodeAttrTargets(ctx, db, attr.ID, attr.Target); err != nil {
 		return err
@@ -1943,7 +1969,7 @@ func createPosture(ctx context.Context, db dbInterface, posture *domain.Posture)
 		 VALUES ($1, $2, $3, $4, $5)`,
 		posture.ID, posture.StackID, posture.Name, posture.CreatedAt, posture.UpdatedAt)
 	if err != nil {
-		return err
+		return wrapUniqueError(err)
 	}
 	return insertPostureRules(ctx, db, posture.ID, posture.Rules)
 }
@@ -2148,7 +2174,7 @@ func createIPSet(ctx context.Context, db dbInterface, ipset *domain.IPSet) error
 		 VALUES ($1, $2, $3, $4, $5)`,
 		ipset.ID, ipset.StackID, ipset.Name, ipset.CreatedAt, ipset.UpdatedAt)
 	if err != nil {
-		return err
+		return wrapUniqueError(err)
 	}
 	return insertIPSetAddresses(ctx, db, ipset.ID, ipset.Addresses)
 }
@@ -2353,7 +2379,7 @@ func createACLTest(ctx context.Context, db dbInterface, test *domain.ACLTest) er
 		 VALUES ($1, $2, $3, $4, $5, $6)`,
 		test.ID, test.StackID, test.Order, test.Source, test.CreatedAt, test.UpdatedAt)
 	if err != nil {
-		return err
+		return wrapUniqueError(err)
 	}
 	if err := insertACLTestAccepts(ctx, db, test.ID, test.Accept); err != nil {
 		return err
@@ -2546,7 +2572,7 @@ func createPolicyVersion(ctx context.Context, db dbInterface, version *domain.Po
 		 VALUES ($1, $2, $3, $4, $5, $6, $7, $8)`,
 		version.ID, version.VersionNumber, version.RenderedPolicy, version.TailscaleETag,
 		version.PushStatus, version.PushError, version.CreatedAt, version.PushedAt)
-	return err
+	return wrapUniqueError(err)
 }
 
 func (s *Store) CreatePolicyVersion(ctx context.Context, version *domain.PolicyVersion) error {
