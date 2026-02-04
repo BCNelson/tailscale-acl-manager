@@ -21,7 +21,7 @@ const APIKeyContextKey contextKey = "api_key"
 func respondAuthError(w http.ResponseWriter, message string) {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusUnauthorized)
-	json.NewEncoder(w).Encode(&domain.StandardErrorResponse{
+	_ = json.NewEncoder(w).Encode(&domain.StandardErrorResponse{
 		Error: domain.StandardError{
 			Code:    domain.ErrCodeUnauthorized,
 			Message: message,
@@ -33,7 +33,7 @@ func respondAuthError(w http.ResponseWriter, message string) {
 func respondInternalError(w http.ResponseWriter) {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusInternalServerError)
-	json.NewEncoder(w).Encode(&domain.StandardErrorResponse{
+	_ = json.NewEncoder(w).Encode(&domain.StandardErrorResponse{
 		Error: domain.StandardError{
 			Code:    domain.ErrCodeInternalError,
 			Message: "internal server error",

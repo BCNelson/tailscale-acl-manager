@@ -386,6 +386,16 @@ func (t *Tx) UpdatePolicyVersion(ctx context.Context, version *domain.PolicyVers
 // API Keys
 // ============================================
 
+// copyAPIKey returns a deep copy of an API key to prevent race conditions.
+func copyAPIKey(key *domain.APIKey) *domain.APIKey {
+	cp := *key
+	if key.LastUsedAt != nil {
+		t := *key.LastUsedAt
+		cp.LastUsedAt = &t
+	}
+	return &cp
+}
+
 func (s *Store) CreateAPIKey(ctx context.Context, key *domain.APIKey) error {
 	s.mu.Lock()
 	defer s.mu.Unlock()
@@ -401,7 +411,7 @@ func (s *Store) GetAPIKeyByHash(ctx context.Context, keyHash string) (*domain.AP
 	defer s.mu.RUnlock()
 	for _, key := range s.apiKeys {
 		if key.KeyHash == keyHash {
-			return key, nil
+			return copyAPIKey(key), nil
 		}
 	}
 	return nil, domain.ErrNotFound
@@ -412,7 +422,7 @@ func (s *Store) ListAPIKeys(ctx context.Context) ([]*domain.APIKey, error) {
 	defer s.mu.RUnlock()
 	keys := make([]*domain.APIKey, 0, len(s.apiKeys))
 	for _, key := range s.apiKeys {
-		keys = append(keys, key)
+		keys = append(keys, copyAPIKey(key))
 	}
 	return keys, nil
 }

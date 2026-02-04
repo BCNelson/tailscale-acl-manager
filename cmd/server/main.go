@@ -19,6 +19,9 @@ import (
 	"github.com/bcnelson/tailscale-acl-manager/internal/web"
 )
 
+// Version is set at build time via -ldflags
+var Version = "dev"
+
 func main() {
 	// Load configuration
 	cfg, err := config.Load()
@@ -128,7 +131,7 @@ func main() {
 		IdleTimeout:  120 * time.Second,
 	}
 
-	log.Printf("Starting Tailscale ACL Manager on http://%s", cfg.Server.Addr())
+	log.Printf("Starting Tailscale ACL Manager %s on http://%s", Version, cfg.Server.Addr())
 	log.Printf("Press Ctrl+C to stop")
 
 	// Start server in goroutine

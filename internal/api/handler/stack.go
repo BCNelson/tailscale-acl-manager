@@ -171,7 +171,7 @@ func (h *StackHandler) ReplaceState(w http.ResponseWriter, r *http.Request) {
 		handleError(w, err)
 		return
 	}
-	defer tx.Rollback()
+	defer func() { _ = tx.Rollback() }()
 
 	// Delete all existing resources for this stack
 	if err := tx.DeleteAllGroupsForStack(ctx, stackID); err != nil {
