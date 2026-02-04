@@ -3,9 +3,42 @@
   <div class="card login-card">
     <div class="card-header">
       <h1>Tailscale ACL Manager</h1>
+      {{if .Content.OIDCEnabled}}
+      <p>Sign in to continue</p>
+      {{else}}
       <p>Enter your API key to continue</p>
+      {{end}}
     </div>
     <div class="card-body">
+      {{if .Content.OIDCEnabled}}
+      <!-- OIDC Login -->
+      <a href="/auth/oidc" class="btn btn-primary" style="width: 100%; display: flex; align-items: center; justify-content: center; gap: 8px;">
+        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"></path>
+          <polyline points="10 17 15 12 10 7"></polyline>
+          <line x1="15" y1="12" x2="3" y2="12"></line>
+        </svg>
+        Sign in with SSO
+      </a>
+
+      <!-- Collapsible API key section -->
+      <details class="api-key-fallback" style="margin-top: 1.5rem;">
+        <summary style="cursor: pointer; color: var(--text-muted); font-size: 0.875rem; text-align: center;">
+          Sign in with API key instead
+        </summary>
+        <div style="margin-top: 1rem;">
+          <form method="POST" action="/login">
+            <div class="form-group">
+              <label for="api_key">API Key</label>
+              <input type="password" id="api_key" name="api_key" required placeholder="acl_...">
+              <div class="help-text">Enter your API key or bootstrap key</div>
+            </div>
+            <button type="submit" class="btn btn-secondary" style="width: 100%;">Login with API Key</button>
+          </form>
+        </div>
+      </details>
+      {{else}}
+      <!-- API Key Login (OIDC disabled) -->
       <form method="POST" action="/login">
         <div class="form-group">
           <label for="api_key">API Key</label>
@@ -14,6 +47,7 @@
         </div>
         <button type="submit" class="btn btn-primary" style="width: 100%;">Login</button>
       </form>
+      {{end}}
     </div>
   </div>
 </div>

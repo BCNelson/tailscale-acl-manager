@@ -29,7 +29,8 @@ func newTestServer() *testServer {
 	// Create a mock sync service that doesn't actually sync to Tailscale
 	syncService := service.NewSyncService(store, nil, 5*time.Second, false)
 
-	handler := api.NewRouter(store, syncService, bootstrapKey)
+	// OIDC disabled for tests (pass nil config and components)
+	handler := api.NewRouter(store, syncService, bootstrapKey, nil, nil)
 
 	return &testServer{
 		handler:      handler,

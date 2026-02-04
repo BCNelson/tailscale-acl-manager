@@ -5,6 +5,7 @@ import (
 
 	"github.com/bcnelson/tailscale-acl-manager/internal/api/handler"
 	"github.com/bcnelson/tailscale-acl-manager/internal/api/middleware"
+	"github.com/bcnelson/tailscale-acl-manager/internal/config"
 	"github.com/bcnelson/tailscale-acl-manager/internal/service"
 	"github.com/bcnelson/tailscale-acl-manager/internal/storage"
 	"github.com/bcnelson/tailscale-acl-manager/internal/web"
@@ -17,6 +18,8 @@ func NewRouter(
 	store storage.Storage,
 	syncService *service.SyncService,
 	bootstrapKey string,
+	oidcConfig *config.OIDCConfig,
+	oidcComponents *web.OIDCComponents,
 ) http.Handler {
 	r := chi.NewRouter()
 
@@ -32,7 +35,7 @@ func NewRouter(
 	})
 
 	// Mount web UI (no Content-Type middleware - serves HTML)
-	webRouter := web.NewRouter(store, syncService, bootstrapKey)
+	webRouter := web.NewRouter(store, syncService, bootstrapKey, oidcConfig, oidcComponents)
 	r.Mount("/", webRouter)
 
 	// API routes (auth required, JSON Content-Type)

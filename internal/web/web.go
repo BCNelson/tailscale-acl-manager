@@ -8,6 +8,8 @@ import (
 	"path/filepath"
 	"strings"
 
+	"github.com/bcnelson/tailscale-acl-manager/internal/auth"
+	"github.com/bcnelson/tailscale-acl-manager/internal/config"
 	"github.com/bcnelson/tailscale-acl-manager/internal/service"
 	"github.com/bcnelson/tailscale-acl-manager/internal/storage"
 	"github.com/go-chi/chi/v5"
@@ -18,19 +20,40 @@ var content embed.FS
 
 // Server holds dependencies for web handlers.
 type Server struct {
-	store        storage.Storage
-	syncService  *service.SyncService
-	bootstrapKey string
-	templates    map[string]*template.Template
-	funcMap      template.FuncMap
+	store          storage.Storage
+	syncService    *service.SyncService
+	bootstrapKey   string
+	templates      map[string]*template.Template
+	funcMap        template.FuncMap
+	oidcEnabled    bool
+	oidcProvider   *auth.OIDCProvider
+	oidcConfig     *config.OIDCConfig
+	sessionManager *auth.SessionManager
+	stateStore     *auth.StateStore
+}
+
+// OIDCComponents holds initialized OIDC components (nil if OIDC is disabled).
+type OIDCComponents struct {
+	Provider       *auth.OIDCProvider
+	SessionManager *auth.SessionManager
+	StateStore     *auth.StateStore
 }
 
 // NewRouter creates a new web router with all routes configured.
-func NewRouter(store storage.Storage, syncService *service.SyncService, bootstrapKey string) http.Handler {
+func NewRouter(store storage.Storage, syncService *service.SyncService, bootstrapKey string, oidcConfig *config.OIDCConfig, oidcComponents *OIDCComponents) http.Handler {
 	s := &Server{
 		store:        store,
 		syncService:  syncService,
 		bootstrapKey: bootstrapKey,
+		oidcConfig:   oidcConfig,
+	}
+
+	// Set up OIDC if enabled
+	if oidcConfig != nil && oidcConfig.Enabled && oidcComponents != nil {
+		s.oidcEnabled = true
+		s.oidcProvider = oidcComponents.Provider
+		s.sessionManager = oidcComponents.SessionManager
+		s.stateStore = oidcComponents.StateStore
 	}
 
 	// Parse all templates
@@ -46,6 +69,12 @@ func NewRouter(store storage.Storage, syncService *service.SyncService, bootstra
 	r.Get("/login", s.handleLoginPage)
 	r.Post("/login", s.handleLogin)
 	r.Get("/logout", s.handleLogout)
+
+	// OIDC routes (only when OIDC is enabled)
+	if s.oidcEnabled {
+		r.Get("/auth/oidc", s.handleOIDCLogin)
+		r.Get("/auth/callback", s.handleOIDCCallback)
+	}
 
 	// Protected routes (require session)
 	r.Group(func(r chi.Router) {
