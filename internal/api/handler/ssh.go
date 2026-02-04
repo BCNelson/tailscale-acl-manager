@@ -88,8 +88,7 @@ func (h *SSHHandler) Create(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	h.syncService.TriggerSync()
-	respondJSON(w, http.StatusCreated, rule)
+	respondMutation(w, r, http.StatusCreated, rule, h.syncService)
 }
 
 // List lists all SSH rules for a stack.
@@ -191,8 +190,7 @@ func (h *SSHHandler) Update(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	h.syncService.TriggerSync()
-	respondJSON(w, http.StatusOK, rule)
+	respondMutation(w, r, http.StatusOK, rule, h.syncService)
 }
 
 // Delete deletes an SSH rule.
@@ -208,6 +206,5 @@ func (h *SSHHandler) Delete(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	h.syncService.TriggerSync()
-	w.WriteHeader(http.StatusNoContent)
+	respondDelete(w, r, h.syncService)
 }

@@ -53,7 +53,7 @@ func (h *StackHandler) Create(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	respondJSON(w, http.StatusCreated, stack)
+	respondMutation(w, r, http.StatusCreated, stack, h.syncService)
 }
 
 // List lists all stacks.
@@ -120,9 +120,7 @@ func (h *StackHandler) Update(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Priority changes affect merge order, trigger sync
-	h.syncService.TriggerSync()
-
-	respondJSON(w, http.StatusOK, stack)
+	respondMutation(w, r, http.StatusOK, stack, h.syncService)
 }
 
 // Delete deletes a stack and all its resources.
@@ -138,8 +136,7 @@ func (h *StackHandler) Delete(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	h.syncService.TriggerSync()
-	w.WriteHeader(http.StatusNoContent)
+	respondDelete(w, r, h.syncService)
 }
 
 // ReplaceState replaces all resources for a stack with the provided state.
@@ -422,6 +419,5 @@ func (h *StackHandler) ReplaceState(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	h.syncService.TriggerSync()
-	respondJSON(w, http.StatusOK, map[string]string{"status": "ok"})
+	respondMutation(w, r, http.StatusOK, map[string]string{"status": "ok"}, h.syncService)
 }

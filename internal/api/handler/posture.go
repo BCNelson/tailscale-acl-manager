@@ -61,8 +61,7 @@ func (h *PostureHandler) Create(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	h.syncService.TriggerSync()
-	respondJSON(w, http.StatusCreated, posture)
+	respondMutation(w, r, http.StatusCreated, posture, h.syncService)
 }
 
 // List lists all postures for a stack.
@@ -179,8 +178,7 @@ func (h *PostureHandler) updatePosture(w http.ResponseWriter, r *http.Request, p
 		return
 	}
 
-	h.syncService.TriggerSync()
-	respondJSON(w, http.StatusOK, posture)
+	respondMutation(w, r, http.StatusOK, posture, h.syncService)
 }
 
 // Delete deletes a posture by name.
@@ -197,8 +195,7 @@ func (h *PostureHandler) Delete(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	h.syncService.TriggerSync()
-	w.WriteHeader(http.StatusNoContent)
+	respondDelete(w, r, h.syncService)
 }
 
 // DeleteByID deletes a posture by UUID.
@@ -225,6 +222,5 @@ func (h *PostureHandler) DeleteByID(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	h.syncService.TriggerSync()
-	w.WriteHeader(http.StatusNoContent)
+	respondDelete(w, r, h.syncService)
 }

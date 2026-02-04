@@ -87,22 +87,7 @@ func (h *GroupHandler) Create(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Handle sync mode
-	if shouldWaitForSync(r) {
-		syncResp, err := h.syncService.TriggerSyncAndWait(r.Context())
-		if err != nil {
-			handleError(w, err)
-			return
-		}
-		respondJSON(w, http.StatusCreated, &domain.MutationResponse{
-			Data:       group,
-			SyncResult: syncResp,
-		})
-		return
-	}
-
-	h.syncService.TriggerSync()
-	respondJSON(w, http.StatusCreated, group)
+	respondMutation(w, r, http.StatusCreated, group, h.syncService)
 }
 
 // List lists all groups for a stack.
@@ -247,22 +232,7 @@ func (h *GroupHandler) updateGroup(w http.ResponseWriter, r *http.Request, group
 		return
 	}
 
-	// Handle sync mode
-	if shouldWaitForSync(r) {
-		syncResp, err := h.syncService.TriggerSyncAndWait(r.Context())
-		if err != nil {
-			handleError(w, err)
-			return
-		}
-		respondJSON(w, http.StatusOK, &domain.MutationResponse{
-			Data:       group,
-			SyncResult: syncResp,
-		})
-		return
-	}
-
-	h.syncService.TriggerSync()
-	respondJSON(w, http.StatusOK, group)
+	respondMutation(w, r, http.StatusOK, group, h.syncService)
 }
 
 // Delete deletes a group by name.
@@ -312,20 +282,5 @@ func (h *GroupHandler) DeleteByID(w http.ResponseWriter, r *http.Request) {
 
 // respondAfterDelete handles the response after a delete operation, including sync mode.
 func (h *GroupHandler) respondAfterDelete(w http.ResponseWriter, r *http.Request) {
-	// Handle sync mode
-	if shouldWaitForSync(r) {
-		syncResp, err := h.syncService.TriggerSyncAndWait(r.Context())
-		if err != nil {
-			handleError(w, err)
-			return
-		}
-		respondJSON(w, http.StatusOK, &domain.MutationResponse{
-			Data:       nil,
-			SyncResult: syncResp,
-		})
-		return
-	}
-
-	h.syncService.TriggerSync()
-	w.WriteHeader(http.StatusNoContent)
+	respondDelete(w, r, h.syncService)
 }

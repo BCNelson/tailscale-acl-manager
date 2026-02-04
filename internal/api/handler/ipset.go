@@ -81,8 +81,7 @@ func (h *IPSetHandler) Create(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	h.syncService.TriggerSync()
-	respondJSON(w, http.StatusCreated, ipset)
+	respondMutation(w, r, http.StatusCreated, ipset, h.syncService)
 }
 
 // List lists all IP sets for a stack.
@@ -211,8 +210,7 @@ func (h *IPSetHandler) updateIPSet(w http.ResponseWriter, r *http.Request, ipset
 		return
 	}
 
-	h.syncService.TriggerSync()
-	respondJSON(w, http.StatusOK, ipset)
+	respondMutation(w, r, http.StatusOK, ipset, h.syncService)
 }
 
 // Delete deletes an IP set by name.
@@ -229,8 +227,7 @@ func (h *IPSetHandler) Delete(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	h.syncService.TriggerSync()
-	w.WriteHeader(http.StatusNoContent)
+	respondDelete(w, r, h.syncService)
 }
 
 // DeleteByID deletes an IP set by UUID.
@@ -257,6 +254,5 @@ func (h *IPSetHandler) DeleteByID(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	h.syncService.TriggerSync()
-	w.WriteHeader(http.StatusNoContent)
+	respondDelete(w, r, h.syncService)
 }

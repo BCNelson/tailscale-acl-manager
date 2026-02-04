@@ -6,13 +6,13 @@ import "time"
 // Used for audit trail and rollback capability.
 type PolicyVersion struct {
 	ID             string    `json:"id" db:"id"`
-	VersionNumber  int       `json:"version_number" db:"version_number"`
-	RenderedPolicy string    `json:"rendered_policy" db:"rendered_policy"` // JSON string
-	TailscaleETag  string    `json:"tailscale_etag,omitempty" db:"tailscale_etag"`
-	PushStatus     string    `json:"push_status" db:"push_status"` // "pending", "success", "failed"
-	PushError      string    `json:"push_error,omitempty" db:"push_error"`
-	CreatedAt      time.Time `json:"created_at" db:"created_at"`
-	PushedAt       *time.Time `json:"pushed_at,omitempty" db:"pushed_at"`
+	VersionNumber  int       `json:"versionNumber" db:"version_number"`
+	RenderedPolicy string    `json:"renderedPolicy" db:"rendered_policy"` // JSON string
+	TailscaleETag  string    `json:"tailscaleEtag,omitempty" db:"tailscale_etag"`
+	PushStatus     string    `json:"pushStatus" db:"push_status"` // "pending", "success", "failed"
+	PushError      string    `json:"pushError,omitempty" db:"push_error"`
+	CreatedAt      time.Time `json:"createdAt" db:"created_at"`
+	PushedAt       *time.Time `json:"pushedAt,omitempty" db:"pushed_at"`
 }
 
 // TailscalePolicy represents the complete Tailscale ACL policy structure.
@@ -83,15 +83,15 @@ type SyncRequest struct {
 
 // SyncResponse is returned after a sync operation.
 type SyncResponse struct {
-	VersionID     string `json:"version_id"`
-	VersionNumber int    `json:"version_number"`
+	VersionID     string `json:"versionId"`
+	VersionNumber int    `json:"versionNumber"`
 	Status        string `json:"status"`
 	Error         string `json:"error,omitempty"`
 }
 
 // RollbackRequest is used to rollback to a previous version.
 type RollbackRequest struct {
-	VersionID string `json:"version_id"`
+	VersionID string `json:"versionId"`
 }
 
 // MutationResponse wraps a resource with optional sync result for ?sync=true requests.

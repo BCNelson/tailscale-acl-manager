@@ -76,8 +76,7 @@ func (h *NodeAttrHandler) Create(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	h.syncService.TriggerSync()
-	respondJSON(w, http.StatusCreated, attr)
+	respondMutation(w, r, http.StatusCreated, attr, h.syncService)
 }
 
 // List lists all node attributes for a stack.
@@ -163,8 +162,7 @@ func (h *NodeAttrHandler) Update(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	h.syncService.TriggerSync()
-	respondJSON(w, http.StatusOK, attr)
+	respondMutation(w, r, http.StatusOK, attr, h.syncService)
 }
 
 // Delete deletes a node attribute.
@@ -180,6 +178,5 @@ func (h *NodeAttrHandler) Delete(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	h.syncService.TriggerSync()
-	w.WriteHeader(http.StatusNoContent)
+	respondDelete(w, r, h.syncService)
 }

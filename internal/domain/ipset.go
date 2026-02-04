@@ -6,11 +6,11 @@ import "time"
 // If multiple stacks define the same IP set name, first-writer wins (by stack priority).
 type IPSet struct {
 	ID        string    `json:"id" db:"id"`
-	StackID   string    `json:"stack_id" db:"stack_id"`
+	StackID   string    `json:"stackId" db:"stack_id"`
 	Name      string    `json:"name" db:"name"`
 	Addresses []string  `json:"addresses" db:"-"` // IP addresses/CIDRs
-	CreatedAt time.Time `json:"created_at" db:"created_at"`
-	UpdatedAt time.Time `json:"updated_at" db:"updated_at"`
+	CreatedAt time.Time `json:"createdAt" db:"created_at"`
+	UpdatedAt time.Time `json:"updatedAt" db:"updated_at"`
 }
 
 // CreateIPSetRequest is the request body for creating an IP set.

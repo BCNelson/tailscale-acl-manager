@@ -8,9 +8,9 @@ type APIKey struct {
 	ID         string     `json:"id" db:"id"`
 	Name       string     `json:"name" db:"name"`
 	KeyHash    string     `json:"-" db:"key_hash"` // Never expose hash
-	KeyPrefix  string     `json:"key_prefix" db:"key_prefix"` // First 8 chars for identification
-	CreatedAt  time.Time  `json:"created_at" db:"created_at"`
-	LastUsedAt *time.Time `json:"last_used_at,omitempty" db:"last_used_at"`
+	KeyPrefix  string     `json:"keyPrefix" db:"key_prefix"` // First 8 chars for identification
+	CreatedAt  time.Time  `json:"createdAt" db:"created_at"`
+	LastUsedAt *time.Time `json:"lastUsedAt,omitempty" db:"last_used_at"`
 }
 
 // CreateAPIKeyRequest is the request body for creating an API key.
@@ -24,6 +24,6 @@ type CreateAPIKeyResponse struct {
 	ID        string    `json:"id"`
 	Name      string    `json:"name"`
 	Key       string    `json:"key"` // Only returned on creation
-	KeyPrefix string    `json:"key_prefix"`
-	CreatedAt time.Time `json:"created_at"`
+	KeyPrefix string    `json:"keyPrefix"`
+	CreatedAt time.Time `json:"createdAt"`
 }

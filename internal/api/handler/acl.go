@@ -86,8 +86,7 @@ func (h *ACLHandler) Create(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	h.syncService.TriggerSync()
-	respondJSON(w, http.StatusCreated, rule)
+	respondMutation(w, r, http.StatusCreated, rule, h.syncService)
 }
 
 // List lists all ACL rules for a stack.
@@ -181,8 +180,7 @@ func (h *ACLHandler) Update(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	h.syncService.TriggerSync()
-	respondJSON(w, http.StatusOK, rule)
+	respondMutation(w, r, http.StatusOK, rule, h.syncService)
 }
 
 // Delete deletes an ACL rule.
@@ -198,6 +196,5 @@ func (h *ACLHandler) Delete(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	h.syncService.TriggerSync()
-	w.WriteHeader(http.StatusNoContent)
+	respondDelete(w, r, h.syncService)
 }

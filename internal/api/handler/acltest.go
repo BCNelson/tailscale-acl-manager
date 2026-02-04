@@ -62,8 +62,7 @@ func (h *ACLTestHandler) Create(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	h.syncService.TriggerSync()
-	respondJSON(w, http.StatusCreated, test)
+	respondMutation(w, r, http.StatusCreated, test, h.syncService)
 }
 
 // List lists all ACL tests for a stack.
@@ -138,8 +137,7 @@ func (h *ACLTestHandler) Update(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	h.syncService.TriggerSync()
-	respondJSON(w, http.StatusOK, test)
+	respondMutation(w, r, http.StatusOK, test, h.syncService)
 }
 
 // Delete deletes an ACL test.
@@ -155,6 +153,5 @@ func (h *ACLTestHandler) Delete(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	h.syncService.TriggerSync()
-	w.WriteHeader(http.StatusNoContent)
+	respondDelete(w, r, h.syncService)
 }

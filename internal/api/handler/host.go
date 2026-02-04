@@ -74,8 +74,7 @@ func (h *HostHandler) Create(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	h.syncService.TriggerSync()
-	respondJSON(w, http.StatusCreated, host)
+	respondMutation(w, r, http.StatusCreated, host, h.syncService)
 }
 
 // List lists all hosts for a stack.
@@ -198,8 +197,7 @@ func (h *HostHandler) updateHost(w http.ResponseWriter, r *http.Request, host *d
 		return
 	}
 
-	h.syncService.TriggerSync()
-	respondJSON(w, http.StatusOK, host)
+	respondMutation(w, r, http.StatusOK, host, h.syncService)
 }
 
 // Delete deletes a host by name.
@@ -216,8 +214,7 @@ func (h *HostHandler) Delete(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	h.syncService.TriggerSync()
-	w.WriteHeader(http.StatusNoContent)
+	respondDelete(w, r, h.syncService)
 }
 
 // DeleteByID deletes a host by UUID.
@@ -244,6 +241,5 @@ func (h *HostHandler) DeleteByID(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	h.syncService.TriggerSync()
-	w.WriteHeader(http.StatusNoContent)
+	respondDelete(w, r, h.syncService)
 }

@@ -6,11 +6,11 @@ import "time"
 // If multiple stacks define the same posture name, first-writer wins (by stack priority).
 type Posture struct {
 	ID        string    `json:"id" db:"id"`
-	StackID   string    `json:"stack_id" db:"stack_id"`
+	StackID   string    `json:"stackId" db:"stack_id"`
 	Name      string    `json:"name" db:"name"`
 	Rules     []string  `json:"rules" db:"-"` // Posture check expressions
-	CreatedAt time.Time `json:"created_at" db:"created_at"`
-	UpdatedAt time.Time `json:"updated_at" db:"updated_at"`
+	CreatedAt time.Time `json:"createdAt" db:"created_at"`
+	UpdatedAt time.Time `json:"updatedAt" db:"updated_at"`
 }
 
 // CreatePostureRequest is the request body for creating a posture.

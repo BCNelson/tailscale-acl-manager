@@ -9,6 +9,7 @@ import (
 	"net/http"
 
 	"github.com/bcnelson/tailscale-acl-manager/internal/domain"
+	"github.com/bcnelson/tailscale-acl-manager/internal/service"
 	"github.com/bcnelson/tailscale-acl-manager/internal/validation"
 	"github.com/google/uuid"
 )
@@ -155,4 +156,44 @@ func respondDryRun(w http.ResponseWriter, preview any) {
 			Valid bool `json:"valid"`
 		}{Valid: true},
 	})
+}
+
+// respondMutation writes a mutation response, optionally waiting for sync.
+func respondMutation(w http.ResponseWriter, r *http.Request, status int, data any, syncService *service.SyncService) {
+	if shouldWaitForSync(r) {
+		syncResp, err := syncService.TriggerSyncAndWait(r.Context())
+		if err != nil {
+			handleError(w, err)
+			return
+		}
+		respondJSON(w, status, &domain.MutationResponse{
+			Data:       data,
+			SyncResult: syncResp,
+		})
+		return
+	}
+
+	syncService.TriggerSync()
+	respondJSON(w, status, &domain.MutationResponse{
+		Data: data,
+	})
+}
+
+// respondDelete handles delete operations with optional sync.
+func respondDelete(w http.ResponseWriter, r *http.Request, syncService *service.SyncService) {
+	if shouldWaitForSync(r) {
+		syncResp, err := syncService.TriggerSyncAndWait(r.Context())
+		if err != nil {
+			handleError(w, err)
+			return
+		}
+		respondJSON(w, http.StatusOK, &domain.MutationResponse{
+			Data:       nil,
+			SyncResult: syncResp,
+		})
+		return
+	}
+
+	syncService.TriggerSync()
+	w.WriteHeader(http.StatusNoContent)
 }

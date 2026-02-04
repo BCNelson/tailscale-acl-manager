@@ -6,14 +6,14 @@ import "time"
 // Rules are ordered by stack priority, then by the order field within each stack.
 type ACLRule struct {
 	ID           string   `json:"id" db:"id"`
-	StackID      string   `json:"stack_id" db:"stack_id"`
+	StackID      string   `json:"stackId" db:"stack_id"`
 	Order        int      `json:"order" db:"rule_order"` // Order within stack
 	Action       string   `json:"action" db:"action"` // "accept" or "deny" (usually "accept")
 	Protocol     string   `json:"protocol,omitempty" db:"protocol"` // Optional protocol filter
 	Sources      []string `json:"src" db:"-"` // Stored in separate table
 	Destinations []string `json:"dst" db:"-"` // Stored in separate table
-	CreatedAt    time.Time `json:"created_at" db:"created_at"`
-	UpdatedAt    time.Time `json:"updated_at" db:"updated_at"`
+	CreatedAt    time.Time `json:"createdAt" db:"created_at"`
+	UpdatedAt    time.Time `json:"updatedAt" db:"updated_at"`
 }
 
 // CreateACLRuleRequest is the request body for creating an ACL rule.
