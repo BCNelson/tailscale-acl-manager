@@ -26,9 +26,10 @@
     echo "Go version: $(go version | cut -d' ' -f3)"
     echo ""
     echo "Available commands (run 'just' to see all):"
-    echo "  just dev    - Run server with file shim"
-    echo "  just test   - Run all tests"
-    echo "  just build  - Build binary"
+    echo "  just dev           - Run server with file shim"
+    echo "  just test          - Run all tests"
+    echo "  just test-cover    - Run tests with coverage"
+    echo "  just build         - Build binary"
   '';
 
   git-hooks.hooks = {

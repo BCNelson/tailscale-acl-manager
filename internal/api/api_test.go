@@ -67,7 +67,7 @@ func TestHealthEndpoint(t *testing.T) {
 	}
 
 	var resp map[string]string
-	json.Unmarshal(rr.Body.Bytes(), &resp)
+	_ = json.Unmarshal(rr.Body.Bytes(), &resp)
 	if resp["status"] != "ok" {
 		t.Errorf("Expected status ok, got %s", resp["status"])
 	}
@@ -119,7 +119,7 @@ func TestAPIKeyLifecycle(t *testing.T) {
 	}
 
 	var createResp domain.CreateAPIKeyResponse
-	json.Unmarshal(rr.Body.Bytes(), &createResp)
+	_ = json.Unmarshal(rr.Body.Bytes(), &createResp)
 	if createResp.Key == "" {
 		t.Error("Expected key to be returned on creation")
 	}
@@ -140,7 +140,7 @@ func TestAPIKeyLifecycle(t *testing.T) {
 	}
 
 	var keys []*domain.APIKey
-	json.Unmarshal(rr.Body.Bytes(), &keys)
+	_ = json.Unmarshal(rr.Body.Bytes(), &keys)
 	if len(keys) != 1 {
 		t.Errorf("Expected 1 key, got %d", len(keys))
 	}
@@ -167,7 +167,7 @@ func TestStackCRUD(t *testing.T) {
 	}
 
 	var stack domain.Stack
-	json.Unmarshal(rr.Body.Bytes(), &stack)
+	_ = json.Unmarshal(rr.Body.Bytes(), &stack)
 	if stack.Name != "terraform-prod" {
 		t.Errorf("Expected name 'terraform-prod', got '%s'", stack.Name)
 	}
@@ -188,7 +188,7 @@ func TestStackCRUD(t *testing.T) {
 	}
 
 	var stacks []*domain.Stack
-	json.Unmarshal(rr.Body.Bytes(), &stacks)
+	_ = json.Unmarshal(rr.Body.Bytes(), &stacks)
 	if len(stacks) != 1 {
 		t.Errorf("Expected 1 stack, got %d", len(stacks))
 	}
@@ -202,7 +202,7 @@ func TestStackCRUD(t *testing.T) {
 	}
 
 	var updatedStack domain.Stack
-	json.Unmarshal(rr.Body.Bytes(), &updatedStack)
+	_ = json.Unmarshal(rr.Body.Bytes(), &updatedStack)
 	if updatedStack.Priority != 5 {
 		t.Errorf("Expected priority 5, got %d", updatedStack.Priority)
 	}
@@ -227,7 +227,7 @@ func TestGroupCRUD(t *testing.T) {
 	stackReq := domain.CreateStackRequest{Name: "test-stack"}
 	rr := ts.request("POST", "/api/v1/stacks", stackReq, ts.bootstrapKey)
 	var stack domain.Stack
-	json.Unmarshal(rr.Body.Bytes(), &stack)
+	_ = json.Unmarshal(rr.Body.Bytes(), &stack)
 
 	// Create group
 	groupReq := domain.CreateGroupRequest{
@@ -240,7 +240,7 @@ func TestGroupCRUD(t *testing.T) {
 	}
 
 	var group domain.Group
-	json.Unmarshal(rr.Body.Bytes(), &group)
+	_ = json.Unmarshal(rr.Body.Bytes(), &group)
 	if group.Name != "group:developers" {
 		t.Errorf("Expected name 'group:developers', got '%s'", group.Name)
 	}
@@ -261,7 +261,7 @@ func TestGroupCRUD(t *testing.T) {
 	}
 
 	var groups []*domain.Group
-	json.Unmarshal(rr.Body.Bytes(), &groups)
+	_ = json.Unmarshal(rr.Body.Bytes(), &groups)
 	if len(groups) != 1 {
 		t.Errorf("Expected 1 group, got %d", len(groups))
 	}
@@ -276,7 +276,7 @@ func TestGroupCRUD(t *testing.T) {
 	}
 
 	var updatedGroup domain.Group
-	json.Unmarshal(rr.Body.Bytes(), &updatedGroup)
+	_ = json.Unmarshal(rr.Body.Bytes(), &updatedGroup)
 	if len(updatedGroup.Members) != 3 {
 		t.Errorf("Expected 3 members, got %d", len(updatedGroup.Members))
 	}
@@ -295,7 +295,7 @@ func TestACLRuleCRUD(t *testing.T) {
 	stackReq := domain.CreateStackRequest{Name: "test-stack"}
 	rr := ts.request("POST", "/api/v1/stacks", stackReq, ts.bootstrapKey)
 	var stack domain.Stack
-	json.Unmarshal(rr.Body.Bytes(), &stack)
+	_ = json.Unmarshal(rr.Body.Bytes(), &stack)
 
 	// Create ACL rule
 	aclReq := domain.CreateACLRuleRequest{
@@ -309,7 +309,7 @@ func TestACLRuleCRUD(t *testing.T) {
 	}
 
 	var rule domain.ACLRule
-	json.Unmarshal(rr.Body.Bytes(), &rule)
+	_ = json.Unmarshal(rr.Body.Bytes(), &rule)
 	if rule.Action != "accept" {
 		t.Errorf("Expected action 'accept', got '%s'", rule.Action)
 	}
@@ -340,7 +340,7 @@ func TestHostCRUD(t *testing.T) {
 	stackReq := domain.CreateStackRequest{Name: "test-stack"}
 	rr := ts.request("POST", "/api/v1/stacks", stackReq, ts.bootstrapKey)
 	var stack domain.Stack
-	json.Unmarshal(rr.Body.Bytes(), &stack)
+	_ = json.Unmarshal(rr.Body.Bytes(), &stack)
 
 	// Create host
 	hostReq := domain.CreateHostRequest{
@@ -353,7 +353,7 @@ func TestHostCRUD(t *testing.T) {
 	}
 
 	var host domain.Host
-	json.Unmarshal(rr.Body.Bytes(), &host)
+	_ = json.Unmarshal(rr.Body.Bytes(), &host)
 	if host.Name != "webserver" {
 		t.Errorf("Expected name 'webserver', got '%s'", host.Name)
 	}
@@ -375,7 +375,7 @@ func TestHostCRUD(t *testing.T) {
 	}
 
 	var updatedHost domain.Host
-	json.Unmarshal(rr.Body.Bytes(), &updatedHost)
+	_ = json.Unmarshal(rr.Body.Bytes(), &updatedHost)
 	if updatedHost.Address != "10.0.0.2" {
 		t.Errorf("Expected address '10.0.0.2', got '%s'", updatedHost.Address)
 	}
@@ -394,7 +394,7 @@ func TestBulkStateReplace(t *testing.T) {
 	stackReq := domain.CreateStackRequest{Name: "test-stack"}
 	rr := ts.request("POST", "/api/v1/stacks", stackReq, ts.bootstrapKey)
 	var stack domain.Stack
-	json.Unmarshal(rr.Body.Bytes(), &stack)
+	_ = json.Unmarshal(rr.Body.Bytes(), &stack)
 
 	// Create initial group
 	groupReq := domain.CreateGroupRequest{
@@ -430,7 +430,7 @@ func TestBulkStateReplace(t *testing.T) {
 	// Verify new groups exist
 	rr = ts.request("GET", "/api/v1/stacks/"+stack.ID+"/groups", nil, ts.bootstrapKey)
 	var groups []*domain.Group
-	json.Unmarshal(rr.Body.Bytes(), &groups)
+	_ = json.Unmarshal(rr.Body.Bytes(), &groups)
 	if len(groups) != 2 {
 		t.Errorf("Expected 2 groups, got %d", len(groups))
 	}
@@ -438,7 +438,7 @@ func TestBulkStateReplace(t *testing.T) {
 	// Verify hosts
 	rr = ts.request("GET", "/api/v1/stacks/"+stack.ID+"/hosts", nil, ts.bootstrapKey)
 	var hosts []*domain.Host
-	json.Unmarshal(rr.Body.Bytes(), &hosts)
+	_ = json.Unmarshal(rr.Body.Bytes(), &hosts)
 	if len(hosts) != 1 {
 		t.Errorf("Expected 1 host, got %d", len(hosts))
 	}
@@ -446,7 +446,7 @@ func TestBulkStateReplace(t *testing.T) {
 	// Verify ACLs
 	rr = ts.request("GET", "/api/v1/stacks/"+stack.ID+"/acls", nil, ts.bootstrapKey)
 	var rules []*domain.ACLRule
-	json.Unmarshal(rr.Body.Bytes(), &rules)
+	_ = json.Unmarshal(rr.Body.Bytes(), &rules)
 	if len(rules) != 1 {
 		t.Errorf("Expected 1 ACL rule, got %d", len(rules))
 	}
@@ -459,7 +459,7 @@ func TestPolicyPreview(t *testing.T) {
 	stackReq := domain.CreateStackRequest{Name: "test-stack", Priority: 10}
 	rr := ts.request("POST", "/api/v1/stacks", stackReq, ts.bootstrapKey)
 	var stack domain.Stack
-	json.Unmarshal(rr.Body.Bytes(), &stack)
+	_ = json.Unmarshal(rr.Body.Bytes(), &stack)
 
 	// Add some resources
 	groupReq := domain.CreateGroupRequest{
@@ -482,7 +482,7 @@ func TestPolicyPreview(t *testing.T) {
 	}
 
 	var policy domain.TailscalePolicy
-	json.Unmarshal(rr.Body.Bytes(), &policy)
+	_ = json.Unmarshal(rr.Body.Bytes(), &policy)
 
 	if len(policy.Groups) != 1 {
 		t.Errorf("Expected 1 group in policy, got %d", len(policy.Groups))
@@ -499,7 +499,7 @@ func TestSSHRuleCRUD(t *testing.T) {
 	stackReq := domain.CreateStackRequest{Name: "test-stack"}
 	rr := ts.request("POST", "/api/v1/stacks", stackReq, ts.bootstrapKey)
 	var stack domain.Stack
-	json.Unmarshal(rr.Body.Bytes(), &stack)
+	_ = json.Unmarshal(rr.Body.Bytes(), &stack)
 
 	// Create SSH rule
 	sshReq := domain.CreateSSHRuleRequest{
@@ -514,7 +514,7 @@ func TestSSHRuleCRUD(t *testing.T) {
 	}
 
 	var rule domain.SSHRule
-	json.Unmarshal(rr.Body.Bytes(), &rule)
+	_ = json.Unmarshal(rr.Body.Bytes(), &rule)
 	if rule.Action != "accept" {
 		t.Errorf("Expected action 'accept', got '%s'", rule.Action)
 	}
@@ -536,7 +536,7 @@ func TestTagOwnerCRUD(t *testing.T) {
 	stackReq := domain.CreateStackRequest{Name: "test-stack"}
 	rr := ts.request("POST", "/api/v1/stacks", stackReq, ts.bootstrapKey)
 	var stack domain.Stack
-	json.Unmarshal(rr.Body.Bytes(), &stack)
+	_ = json.Unmarshal(rr.Body.Bytes(), &stack)
 
 	// Create tag owner
 	tagReq := domain.CreateTagOwnerRequest{
@@ -549,7 +549,7 @@ func TestTagOwnerCRUD(t *testing.T) {
 	}
 
 	var tagOwner domain.TagOwner
-	json.Unmarshal(rr.Body.Bytes(), &tagOwner)
+	_ = json.Unmarshal(rr.Body.Bytes(), &tagOwner)
 	if tagOwner.Tag != "tag:server" {
 		t.Errorf("Expected tag 'tag:server', got '%s'", tagOwner.Tag)
 	}
@@ -577,7 +577,7 @@ func TestAutoApproverCRUD(t *testing.T) {
 	stackReq := domain.CreateStackRequest{Name: "test-stack"}
 	rr := ts.request("POST", "/api/v1/stacks", stackReq, ts.bootstrapKey)
 	var stack domain.Stack
-	json.Unmarshal(rr.Body.Bytes(), &stack)
+	_ = json.Unmarshal(rr.Body.Bytes(), &stack)
 
 	// Create auto approver
 	aaReq := domain.CreateAutoApproverRequest{
@@ -591,7 +591,7 @@ func TestAutoApproverCRUD(t *testing.T) {
 	}
 
 	var aa domain.AutoApprover
-	json.Unmarshal(rr.Body.Bytes(), &aa)
+	_ = json.Unmarshal(rr.Body.Bytes(), &aa)
 	if aa.Type != "routes" {
 		t.Errorf("Expected type 'routes', got '%s'", aa.Type)
 	}
@@ -634,7 +634,7 @@ func TestInvalidRequests(t *testing.T) {
 	stackReq := domain.CreateStackRequest{Name: "test-stack"}
 	rr = ts.request("POST", "/api/v1/stacks", stackReq, ts.bootstrapKey)
 	var stack domain.Stack
-	json.Unmarshal(rr.Body.Bytes(), &stack)
+	_ = json.Unmarshal(rr.Body.Bytes(), &stack)
 
 	rr = ts.request("POST", "/api/v1/stacks/"+stack.ID+"/acls", map[string]any{
 		"action": "accept",

@@ -17,7 +17,7 @@ import (
 func respondJSON(w http.ResponseWriter, status int, data any) {
 	w.WriteHeader(status)
 	if data != nil {
-		json.NewEncoder(w).Encode(data)
+		_ = json.NewEncoder(w).Encode(data)
 	}
 }
 

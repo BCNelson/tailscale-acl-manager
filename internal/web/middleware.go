@@ -109,12 +109,6 @@ func (s *Server) sessionAuth(next http.Handler) http.Handler {
 	})
 }
 
-// getSession retrieves the session from context.
-func getSession(ctx context.Context) *Session {
-	session, _ := ctx.Value(sessionContextKey).(*Session)
-	return session
-}
-
 // setSessionCookie sets the session cookie.
 func setSessionCookie(w http.ResponseWriter, apiKey string) {
 	http.SetCookie(w, &http.Cookie{

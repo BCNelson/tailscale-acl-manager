@@ -28,6 +28,45 @@ test-api:
 test-merger:
     go test -v ./internal/merger/...
 
+# Run tests with coverage report
+test-cover:
+    @mkdir -p coverage
+    go test ./... -coverprofile=coverage/coverage.out -covermode=atomic
+    go tool cover -func=coverage/coverage.out | tail -1
+
+# Generate HTML coverage report
+test-cover-html:
+    @mkdir -p coverage
+    go test ./... -coverprofile=coverage/coverage.out -covermode=atomic
+    go tool cover -html=coverage/coverage.out -o coverage/coverage.html
+    @echo "Coverage report: coverage/coverage.html"
+
+# Show per-function coverage breakdown
+test-cover-func:
+    @mkdir -p coverage
+    go test ./... -coverprofile=coverage/coverage.out -covermode=atomic
+    go tool cover -func=coverage/coverage.out
+
+# Open HTML coverage report in browser
+cover-open:
+    @test -f coverage/coverage.html && xdg-open coverage/coverage.html || echo "Run 'just test-cover-html' first"
+
+# Check coverage meets threshold (usage: just cover-check 70)
+cover-check threshold="60":
+    #!/usr/bin/env bash
+    set -euo pipefail
+    mkdir -p coverage
+    go test ./... -coverprofile=coverage/coverage.out -covermode=atomic
+    coverage=$(go tool cover -func=coverage/coverage.out | grep '^total:' | awk '{print $NF}' | tr -d '%')
+    echo "Total coverage: ${coverage}%"
+    threshold={{threshold}}
+    if awk "BEGIN {exit !($coverage < $threshold)}"; then
+        echo "FAIL: Coverage ${coverage}% is below threshold ${threshold}%"
+        exit 1
+    else
+        echo "PASS: Coverage meets threshold"
+    fi
+
 # Build the server binary
 build:
     go build -o bin/acl-manager ./cmd/server

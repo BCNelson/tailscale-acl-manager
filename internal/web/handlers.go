@@ -445,9 +445,9 @@ func (s *Server) handlePolicyPreview(w http.ResponseWriter, r *http.Request) {
 	policyJSON, _ := json.MarshalIndent(policy, "", "  ")
 
 	w.Header().Set("Content-Type", "text/html")
-	w.Write([]byte(`<div class="code-block"><pre class="json-highlight">`))
-	w.Write(policyJSON)
-	w.Write([]byte(`</pre></div>`))
+	_, _ = w.Write([]byte(`<div class="code-block"><pre class="json-highlight">`))
+	_, _ = w.Write(policyJSON)
+	_, _ = w.Write([]byte(`</pre></div>`))
 }
 
 // handlePolicyVersions renders the policy versions fragment.
@@ -459,7 +459,7 @@ func (s *Server) handlePolicyVersions(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "text/html; charset=utf-8")
 
 	if len(versions) == 0 {
-		w.Write([]byte(`<div class="empty-state"><p>No versions yet.</p></div>`))
+		_, _ = w.Write([]byte(`<div class="empty-state"><p>No versions yet.</p></div>`))
 		return
 	}
 
@@ -490,7 +490,7 @@ func (s *Server) handlePolicyVersions(w http.ResponseWriter, r *http.Request) {
 		buf.WriteString(`</td></tr>`)
 	}
 	buf.WriteString(`</tbody></table>`)
-	w.Write(buf.Bytes())
+	_, _ = w.Write(buf.Bytes())
 }
 
 // handlePolicySync triggers a policy sync.
@@ -662,5 +662,5 @@ func (s *Server) renderFragment(w http.ResponseWriter, page string, data any) {
 func (s *Server) renderError(w http.ResponseWriter, message string, status int) {
 	w.Header().Set("Content-Type", "text/html; charset=utf-8")
 	w.WriteHeader(status)
-	w.Write([]byte(`<div class="flash flash-error">` + message + `</div>`))
+	_, _ = w.Write([]byte(`<div class="flash flash-error">` + message + `</div>`))
 }

@@ -18,8 +18,8 @@ func TestMergeGroups_Union(t *testing.T) {
 	// Create two stacks with different priorities
 	stack1 := &domain.Stack{ID: "stack1", Name: "Stack 1", Priority: 10, CreatedAt: time.Now(), UpdatedAt: time.Now()}
 	stack2 := &domain.Stack{ID: "stack2", Name: "Stack 2", Priority: 20, CreatedAt: time.Now(), UpdatedAt: time.Now()}
-	store.CreateStack(ctx, stack1)
-	store.CreateStack(ctx, stack2)
+	_ = store.CreateStack(ctx, stack1)
+	_ = store.CreateStack(ctx, stack2)
 
 	// Create overlapping groups - both stacks define "group:developers"
 	group1 := &domain.Group{
@@ -48,9 +48,9 @@ func TestMergeGroups_Union(t *testing.T) {
 		UpdatedAt: time.Now(),
 	}
 
-	store.CreateGroup(ctx, group1)
-	store.CreateGroup(ctx, group2)
-	store.CreateGroup(ctx, group3)
+	_ = store.CreateGroup(ctx, group1)
+	_ = store.CreateGroup(ctx, group2)
+	_ = store.CreateGroup(ctx, group3)
 
 	// Merge
 	m := merger.New(store)
@@ -92,8 +92,8 @@ func TestMergeTagOwners_Union(t *testing.T) {
 
 	stack1 := &domain.Stack{ID: "stack1", Name: "Stack 1", Priority: 10, CreatedAt: time.Now(), UpdatedAt: time.Now()}
 	stack2 := &domain.Stack{ID: "stack2", Name: "Stack 2", Priority: 20, CreatedAt: time.Now(), UpdatedAt: time.Now()}
-	store.CreateStack(ctx, stack1)
-	store.CreateStack(ctx, stack2)
+	_ = store.CreateStack(ctx, stack1)
+	_ = store.CreateStack(ctx, stack2)
 
 	// Both stacks define owners for tag:server
 	to1 := &domain.TagOwner{
@@ -113,8 +113,8 @@ func TestMergeTagOwners_Union(t *testing.T) {
 		UpdatedAt: time.Now(),
 	}
 
-	store.CreateTagOwner(ctx, to1)
-	store.CreateTagOwner(ctx, to2)
+	_ = store.CreateTagOwner(ctx, to1)
+	_ = store.CreateTagOwner(ctx, to2)
 
 	m := merger.New(store)
 	policy, err := m.Merge(ctx)
@@ -141,8 +141,8 @@ func TestMergeHosts_FirstWriterWins(t *testing.T) {
 	// Stack 1 has higher priority (lower number)
 	stack1 := &domain.Stack{ID: "stack1", Name: "Stack 1", Priority: 10, CreatedAt: time.Now(), UpdatedAt: time.Now()}
 	stack2 := &domain.Stack{ID: "stack2", Name: "Stack 2", Priority: 20, CreatedAt: time.Now(), UpdatedAt: time.Now()}
-	store.CreateStack(ctx, stack1)
-	store.CreateStack(ctx, stack2)
+	_ = store.CreateStack(ctx, stack1)
+	_ = store.CreateStack(ctx, stack2)
 
 	// Both stacks define "webserver" with different IPs
 	host1 := &domain.Host{
@@ -170,9 +170,9 @@ func TestMergeHosts_FirstWriterWins(t *testing.T) {
 		UpdatedAt: time.Now(),
 	}
 
-	store.CreateHost(ctx, host1)
-	store.CreateHost(ctx, host2)
-	store.CreateHost(ctx, host3)
+	_ = store.CreateHost(ctx, host1)
+	_ = store.CreateHost(ctx, host2)
+	_ = store.CreateHost(ctx, host3)
 
 	m := merger.New(store)
 	policy, err := m.Merge(ctx)
@@ -198,8 +198,8 @@ func TestMergeACLs_OrderedByPriorityThenOrder(t *testing.T) {
 	// Stack 2 has higher priority (lower number)
 	stack1 := &domain.Stack{ID: "stack1", Name: "Stack 1", Priority: 20, CreatedAt: time.Now(), UpdatedAt: time.Now()}
 	stack2 := &domain.Stack{ID: "stack2", Name: "Stack 2", Priority: 10, CreatedAt: time.Now(), UpdatedAt: time.Now()}
-	store.CreateStack(ctx, stack1)
-	store.CreateStack(ctx, stack2)
+	_ = store.CreateStack(ctx, stack1)
+	_ = store.CreateStack(ctx, stack2)
 
 	// ACL rules in stack1
 	rule1 := &domain.ACLRule{
@@ -235,9 +235,9 @@ func TestMergeACLs_OrderedByPriorityThenOrder(t *testing.T) {
 		UpdatedAt:    time.Now(),
 	}
 
-	store.CreateACLRule(ctx, rule1)
-	store.CreateACLRule(ctx, rule2)
-	store.CreateACLRule(ctx, rule3)
+	_ = store.CreateACLRule(ctx, rule1)
+	_ = store.CreateACLRule(ctx, rule2)
+	_ = store.CreateACLRule(ctx, rule3)
 
 	m := merger.New(store)
 	policy, err := m.Merge(ctx)
@@ -269,8 +269,8 @@ func TestMergeSSH_OrderedByPriorityThenOrder(t *testing.T) {
 
 	stack1 := &domain.Stack{ID: "stack1", Name: "Stack 1", Priority: 20, CreatedAt: time.Now(), UpdatedAt: time.Now()}
 	stack2 := &domain.Stack{ID: "stack2", Name: "Stack 2", Priority: 10, CreatedAt: time.Now(), UpdatedAt: time.Now()}
-	store.CreateStack(ctx, stack1)
-	store.CreateStack(ctx, stack2)
+	_ = store.CreateStack(ctx, stack1)
+	_ = store.CreateStack(ctx, stack2)
 
 	ssh1 := &domain.SSHRule{
 		ID:           "ssh1",
@@ -296,8 +296,8 @@ func TestMergeSSH_OrderedByPriorityThenOrder(t *testing.T) {
 		UpdatedAt:    time.Now(),
 	}
 
-	store.CreateSSHRule(ctx, ssh1)
-	store.CreateSSHRule(ctx, ssh2)
+	_ = store.CreateSSHRule(ctx, ssh1)
+	_ = store.CreateSSHRule(ctx, ssh2)
 
 	m := merger.New(store)
 	policy, err := m.Merge(ctx)
@@ -324,8 +324,8 @@ func TestMergeAutoApprovers_Additive(t *testing.T) {
 
 	stack1 := &domain.Stack{ID: "stack1", Name: "Stack 1", Priority: 10, CreatedAt: time.Now(), UpdatedAt: time.Now()}
 	stack2 := &domain.Stack{ID: "stack2", Name: "Stack 2", Priority: 20, CreatedAt: time.Now(), UpdatedAt: time.Now()}
-	store.CreateStack(ctx, stack1)
-	store.CreateStack(ctx, stack2)
+	_ = store.CreateStack(ctx, stack1)
+	_ = store.CreateStack(ctx, stack2)
 
 	// Both stacks define auto-approvers for the same route
 	aa1 := &domain.AutoApprover{
@@ -356,9 +356,9 @@ func TestMergeAutoApprovers_Additive(t *testing.T) {
 		UpdatedAt: time.Now(),
 	}
 
-	store.CreateAutoApprover(ctx, aa1)
-	store.CreateAutoApprover(ctx, aa2)
-	store.CreateAutoApprover(ctx, aa3)
+	_ = store.CreateAutoApprover(ctx, aa1)
+	_ = store.CreateAutoApprover(ctx, aa2)
+	_ = store.CreateAutoApprover(ctx, aa3)
 
 	m := merger.New(store)
 	policy, err := m.Merge(ctx)
@@ -388,8 +388,8 @@ func TestMergePostures_FirstWriterWins(t *testing.T) {
 
 	stack1 := &domain.Stack{ID: "stack1", Name: "Stack 1", Priority: 10, CreatedAt: time.Now(), UpdatedAt: time.Now()}
 	stack2 := &domain.Stack{ID: "stack2", Name: "Stack 2", Priority: 20, CreatedAt: time.Now(), UpdatedAt: time.Now()}
-	store.CreateStack(ctx, stack1)
-	store.CreateStack(ctx, stack2)
+	_ = store.CreateStack(ctx, stack1)
+	_ = store.CreateStack(ctx, stack2)
 
 	// Both stacks define the same posture
 	p1 := &domain.Posture{
@@ -409,8 +409,8 @@ func TestMergePostures_FirstWriterWins(t *testing.T) {
 		UpdatedAt: time.Now(),
 	}
 
-	store.CreatePosture(ctx, p1)
-	store.CreatePosture(ctx, p2)
+	_ = store.CreatePosture(ctx, p1)
+	_ = store.CreatePosture(ctx, p2)
 
 	m := merger.New(store)
 	policy, err := m.Merge(ctx)
@@ -431,8 +431,8 @@ func TestMergeIPSets_FirstWriterWins(t *testing.T) {
 
 	stack1 := &domain.Stack{ID: "stack1", Name: "Stack 1", Priority: 10, CreatedAt: time.Now(), UpdatedAt: time.Now()}
 	stack2 := &domain.Stack{ID: "stack2", Name: "Stack 2", Priority: 20, CreatedAt: time.Now(), UpdatedAt: time.Now()}
-	store.CreateStack(ctx, stack1)
-	store.CreateStack(ctx, stack2)
+	_ = store.CreateStack(ctx, stack1)
+	_ = store.CreateStack(ctx, stack2)
 
 	// Both stacks define the same IP set
 	is1 := &domain.IPSet{
@@ -452,8 +452,8 @@ func TestMergeIPSets_FirstWriterWins(t *testing.T) {
 		UpdatedAt: time.Now(),
 	}
 
-	store.CreateIPSet(ctx, is1)
-	store.CreateIPSet(ctx, is2)
+	_ = store.CreateIPSet(ctx, is1)
+	_ = store.CreateIPSet(ctx, is2)
 
 	m := merger.New(store)
 	policy, err := m.Merge(ctx)
@@ -474,8 +474,8 @@ func TestMergeTests_Concatenated(t *testing.T) {
 
 	stack1 := &domain.Stack{ID: "stack1", Name: "Stack 1", Priority: 20, CreatedAt: time.Now(), UpdatedAt: time.Now()}
 	stack2 := &domain.Stack{ID: "stack2", Name: "Stack 2", Priority: 10, CreatedAt: time.Now(), UpdatedAt: time.Now()}
-	store.CreateStack(ctx, stack1)
-	store.CreateStack(ctx, stack2)
+	_ = store.CreateStack(ctx, stack1)
+	_ = store.CreateStack(ctx, stack2)
 
 	test1 := &domain.ACLTest{
 		ID:        "t1",
@@ -496,8 +496,8 @@ func TestMergeTests_Concatenated(t *testing.T) {
 		UpdatedAt: time.Now(),
 	}
 
-	store.CreateACLTest(ctx, test1)
-	store.CreateACLTest(ctx, test2)
+	_ = store.CreateACLTest(ctx, test1)
+	_ = store.CreateACLTest(ctx, test2)
 
 	m := merger.New(store)
 	policy, err := m.Merge(ctx)
@@ -521,8 +521,8 @@ func TestMergeNodeAttrs_Concatenated(t *testing.T) {
 
 	stack1 := &domain.Stack{ID: "stack1", Name: "Stack 1", Priority: 20, CreatedAt: time.Now(), UpdatedAt: time.Now()}
 	stack2 := &domain.Stack{ID: "stack2", Name: "Stack 2", Priority: 10, CreatedAt: time.Now(), UpdatedAt: time.Now()}
-	store.CreateStack(ctx, stack1)
-	store.CreateStack(ctx, stack2)
+	_ = store.CreateStack(ctx, stack1)
+	_ = store.CreateStack(ctx, stack2)
 
 	na1 := &domain.NodeAttr{
 		ID:        "na1",
@@ -543,8 +543,8 @@ func TestMergeNodeAttrs_Concatenated(t *testing.T) {
 		UpdatedAt: time.Now(),
 	}
 
-	store.CreateNodeAttr(ctx, na1)
-	store.CreateNodeAttr(ctx, na2)
+	_ = store.CreateNodeAttr(ctx, na1)
+	_ = store.CreateNodeAttr(ctx, na2)
 
 	m := merger.New(store)
 	policy, err := m.Merge(ctx)
@@ -568,8 +568,8 @@ func TestMergeGrants_OrderedByPriorityThenOrder(t *testing.T) {
 
 	stack1 := &domain.Stack{ID: "stack1", Name: "Stack 1", Priority: 20, CreatedAt: time.Now(), UpdatedAt: time.Now()}
 	stack2 := &domain.Stack{ID: "stack2", Name: "Stack 2", Priority: 10, CreatedAt: time.Now(), UpdatedAt: time.Now()}
-	store.CreateStack(ctx, stack1)
-	store.CreateStack(ctx, stack2)
+	_ = store.CreateStack(ctx, stack1)
+	_ = store.CreateStack(ctx, stack2)
 
 	grant1 := &domain.Grant{
 		ID:           "grant1",
@@ -592,8 +592,8 @@ func TestMergeGrants_OrderedByPriorityThenOrder(t *testing.T) {
 		UpdatedAt:    time.Now(),
 	}
 
-	store.CreateGrant(ctx, grant1)
-	store.CreateGrant(ctx, grant2)
+	_ = store.CreateGrant(ctx, grant1)
+	_ = store.CreateGrant(ctx, grant2)
 
 	m := merger.New(store)
 	policy, err := m.Merge(ctx)

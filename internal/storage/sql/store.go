@@ -93,9 +93,6 @@ type dbInterface interface {
 	ExecContext(ctx context.Context, query string, args ...any) (sql.Result, error)
 }
 
-func (s *Store) db_() dbInterface { return s.db }
-func (t *Tx) db_() dbInterface    { return t.tx }
-
 // ============================================
 // API Keys
 // ============================================
